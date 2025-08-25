@@ -1,0 +1,35 @@
+# Global
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+build/
+dist/
+.env
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# .NET
+bin/
+obj/
+*.log
+*.db
+*.pdb
+*.cache
+*.config
+*.vspscc
+*.vssscc
+
+# SQL Server
+*.mdf
+*.ldf
+
+# Others
+*.sqlite
+*.sqlite3
