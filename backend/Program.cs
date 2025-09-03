@@ -1,9 +1,23 @@
+using FluxCommerce.Api.Data;
+using MongoDB.Driver;
+using MediatR;
+using FluxCommerce.Api.Application.Handlers;
+using FluxCommerce.Api.Common;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddSingleton<MongoDbContext>();
+builder.Services.AddSingleton<MongoDbService>();
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<RegisterMerchantCommandHandler>());
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ApiExceptionFilter>();
+});
 
 var app = builder.Build();
 
@@ -15,6 +29,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRouting();
+app.UseAuthorization();
+app.MapControllers();
 
 var summaries = new[]
 {
