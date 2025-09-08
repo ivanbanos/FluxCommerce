@@ -16,6 +16,10 @@ namespace FluxCommerce.Api.Models
         public string? Email { get; set; }
         [Required]
         public string? PasswordHash { get; set; }
-        public string State { get; set; } = "pending activation";
+        [Required]
+        [Phone]
+        public string? Phone { get; set; }
+    public string? ActivationToken { get; set; } // Token de activación
+    public string State { get; set; } = "pending activation"; // Estados: pending activation, validatedemail, active
     }
 }

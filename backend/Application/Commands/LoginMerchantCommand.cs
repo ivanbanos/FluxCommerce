@@ -1,20 +1,18 @@
 using MediatR;
-using System.ComponentModel.DataAnnotations;
 
 namespace FluxCommerce.Api.Application.Commands
 {
-    public class RegisterMerchantCommand : IRequest<RegisterMerchantResult>
+    public class LoginMerchantCommand : IRequest<LoginMerchantResult>
     {
-        public string? Name { get; set; }
         public string? Email { get; set; }
         public string? Password { get; set; }
-        public string? Phone { get; set; } // Nuevo campo
     }
 
-    public class RegisterMerchantResult
+    public class LoginMerchantResult
     {
         public bool Success { get; set; }
         public string? Error { get; set; }
+        public string? Token { get; set; }
         public string? Name { get; set; }
         public string? Email { get; set; }
     }
