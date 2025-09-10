@@ -1,3 +1,4 @@
+
 using FluxCommerce.Api.Application.Commands;
 using FluxCommerce.Api.Data;
 using MediatR;
@@ -18,27 +19,19 @@ namespace FluxCommerce.Api.Controllers
             _mongoDbService = mongoDbService;
         }
 
-        [HttpGet("products")]
-        public async Task<IActionResult> GetProducts()
-        {
-            // En producción, obtener MerchantId del JWT
-            var merchantId = "demo"; // Simulado
-            var products = await _mongoDbService.GetProductsByMerchantAsync(merchantId);
-            return Ok(products);
-        }
 
-
-        [HttpPost("product")]
-        [RequestSizeLimit(10_000_000)] // 10MB
-        public async Task<IActionResult> CreateProduct([FromForm] FluxCommerce.Api.Application.Commands.CreateProductCommand command)
+        [HttpPut("product/{id}")]
+        [RequestSizeLimit(10_000_000)]
+        public async Task<IActionResult> UpdateProduct(string id, [FromForm] FluxCommerce.Api.Application.Commands.UpdateProductCommand command)
         {
-            // Obtener MerchantId del JWT
             var merchantId = User.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == "id")?.Value;
             if (string.IsNullOrEmpty(merchantId))
                 return Unauthorized("No se pudo obtener el merchantId del token");
             command.MerchantId = merchantId;
-            var result = await _mediator.Send(command);
-            return Ok(new { id = result });
+            command.Id = id;
+            var ok = await _mediator.Send(command);
+            if (!ok) return NotFound();
+            return Ok();
         }
 
         [HttpGet("all")]
@@ -87,6 +80,18 @@ namespace FluxCommerce.Api.Controllers
         {
             var result = await _mediator.Send(new ActivateMerchantCommand(token));
             return Ok(result);
+        }
+
+
+        [HttpDelete("product/{id}")]
+        public async Task<IActionResult> DeleteProduct(string id)
+        {
+            var merchantId = User.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == "id")?.Value;
+            if (string.IsNullOrEmpty(merchantId))
+                return Unauthorized("No se pudo obtener el merchantId del token");
+            var ok = await _mediator.Send(new FluxCommerce.Api.Application.Commands.DeleteProductCommand { Id = id, MerchantId = merchantId });
+            if (!ok) return NotFound();
+            return Ok();
         }
     }
 }
