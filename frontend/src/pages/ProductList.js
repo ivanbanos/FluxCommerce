@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 
 export default function ProductList() {
   const { merchantId } = useParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { addToCart } = useCart();
 
   useEffect(() => {
     async function fetchProducts() {
@@ -26,7 +28,16 @@ export default function ProductList() {
           <img src={product.cover || '/placeholder.png'} alt={product.name} style={{ width: '100%', height: 140, objectFit: 'cover', borderRadius: 4 }} />
           <h3 style={{ margin: '12px 0 4px 0', fontSize: 18 }}>{product.name}</h3>
           <div style={{ fontWeight: 'bold', color: '#2a2' }}>${product.price}</div>
-          <button style={{ marginTop: 12, width: '100%', background: '#1976d2', color: '#fff', border: 'none', borderRadius: 4, padding: 8, cursor: 'pointer' }}>
+          <button
+            style={{ marginTop: 12, width: '100%', background: '#1976d2', color: '#fff', border: 'none', borderRadius: 4, padding: 8, cursor: 'pointer' }}
+            onClick={() => addToCart({
+              id: product.id,
+              name: product.name,
+              price: product.price,
+              cover: product.cover,
+              stock: product.stock || 1
+            })}
+          >
             Agregar
           </button>
         </div>

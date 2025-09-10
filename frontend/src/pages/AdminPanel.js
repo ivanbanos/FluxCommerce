@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate, NavLink, Routes, Route } from 'react-router-dom';
 import MerchantArticles from './MerchantArticles';
 import MerchantOrders from './MerchantOrders';
+import MerchantOrderDetail from './MerchantOrderDetail';
 
 function AdminPanel() {
   const navigate = useNavigate();
@@ -38,6 +39,7 @@ function AdminPanel() {
         <Routes>
           <Route path="/admin/articles" element={<MerchantArticles />} />
           <Route path="/admin/orders" element={<MerchantOrders />} />
+          <Route path="/admin/orders/:orderId" element={<MerchantOrderDetail />} />
           <Route path="/admin" element={
             <div style={{ padding: 24 }}>
               <h2>Panel de administración</h2>

@@ -16,6 +16,7 @@ import ProductDetail from './pages/ProductDetail';
 import MerchantArticles from './pages/MerchantArticles';
 import MerchantOrders from './pages/MerchantOrders';
 import CartPage from './pages/CartPage';
+import PaymentSuccess from './pages/PaymentSuccess';
 
 function App() {
   return (
@@ -49,7 +50,8 @@ function App() {
               <MerchantOrders />
             </ProtectedRoute>
           } />
-          <Route path="/cart" element={<CartPage />} />
+    <Route path="/cart" element={<CartPage />} />
+    <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/store/:merchantId" element={<ProductList />} />
           <Route path="/product/:id" element={<ProductDetail />} />
         </Routes>

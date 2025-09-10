@@ -1,9 +1,11 @@
 import React from 'react';
 import { useCart } from '../context/CartContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function CartPage() {
   const { cart, removeFromCart, clearCart } = useCart();
   const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const navigate = useNavigate();
 
   if (cart.length === 0) return <div style={{ padding: 32 }}>Tu carrito está vacío.</div>;
 
@@ -41,7 +43,15 @@ export default function CartPage() {
       </table>
       <div style={{ marginTop: 24, fontWeight: 'bold', fontSize: 20 }}>Total: ${total.toFixed(2)}</div>
       <button onClick={clearCart} style={{ marginTop: 16, background: '#d32f2f', color: '#fff', border: 'none', borderRadius: 4, padding: 10, cursor: 'pointer' }}>Vaciar carrito</button>
-      <button style={{ marginTop: 16, marginLeft: 16, background: '#1976d2', color: '#fff', border: 'none', borderRadius: 4, padding: 10, cursor: 'pointer' }}>Proceder al pago</button>
+      <button
+        style={{ marginTop: 16, marginLeft: 16, background: '#1976d2', color: '#fff', border: 'none', borderRadius: 4, padding: 10, cursor: 'pointer' }}
+        onClick={() => {
+          clearCart();
+          navigate('/payment-success');
+        }}
+      >
+        Proceder al pago
+      </button>
     </div>
   );
 }

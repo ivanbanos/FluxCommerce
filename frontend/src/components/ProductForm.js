@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-function ProductForm({ onSave }) {
+function ProductForm({ onSave, initialData, onCancel }) {
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -10,6 +10,28 @@ function ProductForm({ onSave }) {
     coverIndex: 0
   });
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (initialData) {
+      setForm({
+        name: initialData.name || '',
+        description: initialData.description || '',
+        price: initialData.price || '',
+        stock: initialData.stock || '',
+        images: [], // no pre-carga imágenes
+        coverIndex: initialData.coverIndex || 0
+      });
+    } else {
+      setForm({
+        name: '',
+        description: '',
+        price: '',
+        stock: '',
+        images: [],
+        coverIndex: 0
+      });
+    }
+  }, [initialData]);
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -67,7 +89,12 @@ function ProductForm({ onSave }) {
         </div>
       </div>
       {error && <p style={{ color: 'red' }}>{error}</p>}
-      <button type="submit" style={{ width: '100%', padding: 10, background: '#1976d2', color: '#fff', border: 'none', borderRadius: 4 }}>Guardar producto</button>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button type="submit" style={{ flex: 1, padding: 10, background: '#1976d2', color: '#fff', border: 'none', borderRadius: 4 }}>{initialData ? 'Actualizar' : 'Guardar producto'}</button>
+        {initialData && onCancel && (
+          <button type="button" onClick={onCancel} style={{ flex: 1, padding: 10, background: '#eee', color: '#333', border: 'none', borderRadius: 4 }}>Cancelar</button>
+        )}
+      </div>
     </form>
   );
 }
