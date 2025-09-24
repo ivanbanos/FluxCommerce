@@ -1,5 +1,8 @@
 using FluxCommerce.Api.Data;
 using Microsoft.AspNetCore.Mvc;
+using MediatR;
+using FluxCommerce.Api.Application.Commands;
+using System.Threading.Tasks;
 
 namespace FluxCommerce.Api.Controllers
 {
@@ -8,29 +11,35 @@ namespace FluxCommerce.Api.Controllers
     public class ProductController : ControllerBase
     {
         private readonly MongoDbService _mongoDbService;
-        public ProductController(MongoDbService mongoDbService)
+        private readonly IMediator _mediator;
+        public ProductController(MongoDbService mongoDbService, IMediator mediator)
         {
             _mongoDbService = mongoDbService;
+            _mediator = mediator;
+        }
+        [HttpPut]
+        public async Task<IActionResult> UpdateProduct([FromForm] UpdateProductCommand command)
+        {
+            if (string.IsNullOrEmpty(command.Id))
+                return BadRequest(new { id = new[] { "The Id field is required." } });
+            var result = await _mediator.Send(command);
+            if (!result)
+                return NotFound();
+            return Ok();
         }
 
         // Endpoint público para listar productos de una tienda
         [HttpGet("list/{merchantId}")]
         public async Task<IActionResult> ListProductsByMerchant(string merchantId)
         {
-            var products = await _mongoDbService.GetProductsByMerchantAsync(merchantId);
-            var result = products.Select(p => new {
-                id = p.Id,
-                name = p.Name,
-                price = p.Price,
-                cover = (p.Images != null && p.Images.Count > 0 && p.CoverIndex < p.Images.Count) ? p.Images[p.CoverIndex] : null
-            });
+            var result = await _mediator.Send(new FluxCommerce.Api.Application.Queries.GetProductsByMerchantQuery(merchantId));
             return Ok(result);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProductById(string id)
         {
-            var product = await _mongoDbService.GetProductByIdAsync(id);
+            var product = await _mediator.Send(new FluxCommerce.Api.Application.Queries.GetProductByIdQuery(id));
             if (product == null)
                 return NotFound();
             return Ok(product);

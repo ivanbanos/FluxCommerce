@@ -1,11 +1,22 @@
 
+
 using System.Collections.Generic;
 using FluxCommerce.Api.Models;
 using MongoDB.Driver;
+using System.Collections.Generic;
+using MongoDB.Driver;
 using System.Threading.Tasks;
+using FluxCommerce.Api.Models;
 
 namespace FluxCommerce.Api.Data
+
+
+
+
 {
+
+
+
     public class MongoDbService
     {
         private readonly IMongoCollection<Merchant> _merchants;
@@ -41,6 +52,28 @@ namespace FluxCommerce.Api.Data
         public async Task<bool> MerchantEmailExistsAsync(string email)
         {
             return await _merchants.Find(m => m.Email == email).AnyAsync();
+        }
+
+        public async Task<string?> SetupMerchantStoreAsync(string merchantId, string storeName)
+        {
+            // Generar slug único
+            string slug = storeName.ToLower().Replace(" ", "-").Replace("á", "a").Replace("é", "e").Replace("í", "i").Replace("ó", "o").Replace("ú", "u").Replace("ñ", "n");
+            int i = 1;
+            string baseSlug = slug;
+            while (await _merchants.Find(m => m.StoreSlug == slug && m.Id != merchantId).AnyAsync())
+            {
+                slug = $"{baseSlug}-{i++}";
+            }
+            var update = Builders<Merchant>.Update.Set(m => m.Name, storeName).Set(m => m.StoreSlug, slug);
+            var result = await _merchants.UpdateOneAsync(m => m.Id == merchantId, update);
+            return result.ModifiedCount > 0 ? slug : null;
+        }
+
+        public async Task<bool> SetMerchantActiveAsync(string merchantId, bool isActive)
+        {
+            var update = Builders<Merchant>.Update.Set(m => m.IsActive, isActive);
+            var result = await _merchants.UpdateOneAsync(m => m.Id == merchantId, update);
+            return result.ModifiedCount > 0;
         }
 
         public async Task InsertMerchantAsync(Merchant merchant)
@@ -136,6 +169,31 @@ namespace FluxCommerce.Api.Data
             var result = await _orders.UpdateOneAsync(o => o.Id == orderId, update);
             return result.ModifiedCount > 0;
         }
+
+        public async Task<bool> SetOrderReceivedAsync(string orderId)
+        {
+            var update = Builders<Order>.Update.Set(o => o.Status, "recibido");
+            var result = await _orders.UpdateOneAsync(o => o.Id == orderId, update);
+            return result.ModifiedCount > 0;
+        }
+
+        public async Task<bool> SetOrderTrackingNumberAsync(string orderId, string trackingNumber)
+        {
+            var update = Builders<Order>.Update.Set(o => o.TrackingNumber, trackingNumber);
+            var result = await _orders.UpdateOneAsync(o => o.Id == orderId, update);
+            return result.ModifiedCount > 0;
+        }
+
+        public async Task<List<Order>> GetOrdersByBuyerEmailAsync(string email)
+        {
+            return await _orders.Find(o => o.BuyerEmail == email).SortByDescending(o => o.CreatedAt).ToListAsync();
+        }
+        public async Task<Order?> GetOrderByIdAsync(string id)
+        {
+            return await _orders.Find(o => o.Id == id).FirstOrDefaultAsync();
+        }
+
+
 
     }
 }

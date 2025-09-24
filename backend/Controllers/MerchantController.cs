@@ -1,4 +1,5 @@
 
+
 using FluxCommerce.Api.Application.Commands;
 using FluxCommerce.Api.Data;
 using MediatR;
@@ -10,6 +11,39 @@ namespace FluxCommerce.Api.Controllers
     [Route("api/[controller]")]
     public class MerchantController : ControllerBase
     {
+        [HttpPost("set-active/{id}")]
+        public async Task<IActionResult> SetMerchantActive(string id, [FromBody] SetMerchantActiveDto dto)
+        {
+            // En producción, validar rol admin por JWT
+            if (dto == null) return BadRequest();
+            var ok = await _mediator.Send(new SetMerchantActiveCommand { MerchantId = id, IsActive = dto.IsActive });
+            if (!ok) return NotFound();
+            return Ok();
+        }
+
+        public class SetMerchantActiveDto
+        {
+            public bool IsActive { get; set; }
+        }
+
+        [HttpPost("setup")]
+        public async Task<IActionResult> SetupStore([FromBody] SetupMerchantStoreDto dto)
+        {
+            var merchantId = User.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == "id")?.Value;
+            if (string.IsNullOrEmpty(merchantId))
+                return Unauthorized("No se pudo obtener el merchantId del token");
+            if (dto == null || string.IsNullOrWhiteSpace(dto.StoreName))
+                return BadRequest();
+            var slug = await _mediator.Send(new SetupMerchantStoreCommand { MerchantId = merchantId, StoreName = dto.StoreName });
+            if (slug == null) return BadRequest("No se pudo configurar la tienda");
+            var url = $"/store/{slug}";
+            return Ok(new { url });
+        }
+
+        public class SetupMerchantStoreDto
+        {
+            public string StoreName { get; set; } = null!;
+        }
         private readonly IMediator _mediator;
         private readonly MongoDbService _mongoDbService;
 

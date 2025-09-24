@@ -4,9 +4,12 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import CartIcon from './components/CartIcon';
 
 import StoreList from './pages/StoreList';
+import MerchantSetupWizard from './pages/MerchantSetupWizard';
+import TrackOrders from './pages/TrackOrders';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import AdminPanel from './pages/AdminPanel';
+import MerchantOrderDetail from './pages/MerchantOrderDetail';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminLoginPage from './pages/AdminLoginPage';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
@@ -16,7 +19,9 @@ import ProductDetail from './pages/ProductDetail';
 import MerchantArticles from './pages/MerchantArticles';
 import MerchantOrders from './pages/MerchantOrders';
 import CartPage from './pages/CartPage';
+
 import PaymentSuccess from './pages/PaymentSuccess';
+import ShippingPage from './pages/ShippingPage';
 
 function App() {
   return (
@@ -29,7 +34,7 @@ function App() {
           <Route path="/" element={<StoreList />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/admin" element={
+          <Route path="/admin/*" element={
             <ProtectedRoute>
               <AdminPanel />
             </ProtectedRoute>
@@ -40,20 +45,13 @@ function App() {
               <SuperAdminDashboard />
             </ProtectedAdminRoute>
           } />
-          <Route path="/admin/articles" element={
-            <ProtectedRoute>
-              <MerchantArticles />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/orders" element={
-            <ProtectedRoute>
-              <MerchantOrders />
-            </ProtectedRoute>
-          } />
-    <Route path="/cart" element={<CartPage />} />
-    <Route path="/payment-success" element={<PaymentSuccess />} />
+  <Route path="/cart" element={<CartPage />} />
+  <Route path="/shipping" element={<ShippingPage />} />
+  <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/store/:merchantId" element={<ProductList />} />
           <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/track-orders" element={<TrackOrders />} />
+          <Route path="/merchant-setup" element={<MerchantSetupWizard />} />
         </Routes>
       </BrowserRouter>
     </CartProvider>

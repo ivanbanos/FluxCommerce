@@ -35,7 +35,8 @@ export default function ProductList() {
               name: product.name,
               price: product.price,
               cover: product.cover,
-              stock: product.stock || 1
+              stock: product.stock || 1,
+              merchantId: merchantId
             })}
           >
             Agregar

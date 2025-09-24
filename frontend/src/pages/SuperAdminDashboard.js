@@ -11,6 +11,29 @@ function SuperAdminDashboard() {
   const [error, setError] = useState('');
   const [validating, setValidating] = useState('');
   const [search, setSearch] = useState('');
+  const [toggling, setToggling] = useState('');
+  const handleToggleActive = async (id, isActive) => {
+    setToggling(id);
+    setError('');
+    try {
+      const res = await fetch(`/api/merchant/set-active/${id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ isActive: !isActive })
+      });
+      if (res.ok) {
+        setMerchants(merchants => merchants.map(m => m.id === id ? { ...m, isActive: !isActive } : m));
+      } else {
+        setError('No se pudo cambiar el estado');
+      }
+    } catch {
+      setError('Error de red');
+    }
+    setToggling('');
+  };
   const filteredMerchants = merchants.filter(m =>
     m.name?.toLowerCase().includes(search.toLowerCase()) ||
     m.email?.toLowerCase().includes(search.toLowerCase())
@@ -90,6 +113,7 @@ function SuperAdminDashboard() {
             <th style={{ border: '1px solid #ccc', padding: 8 }}>Teléfono</th>
             <th style={{ border: '1px solid #ccc', padding: 8 }}>Estado</th>
             <th style={{ border: '1px solid #ccc', padding: 8 }}>Acción</th>
+            <th style={{ border: '1px solid #ccc', padding: 8 }}>Activo</th>
           </tr>
         </thead>
         <tbody>
@@ -105,6 +129,17 @@ function SuperAdminDashboard() {
                     {validating === m.id ? 'Validando...' : 'Validar'}
                   </button>
                 ) : '✔️'}
+              </td>
+              <td style={{ border: '1px solid #ccc', padding: 8 }}>
+                <button
+                  onClick={() => handleToggleActive(m.id, m.isActive)}
+                  disabled={!!toggling}
+                  style={{ padding: 6, background: m.isActive ? '#d32f2f' : '#388e3c', color: '#fff', border: 'none', borderRadius: 4 }}
+                >
+                  {toggling === m.id
+                    ? 'Actualizando...'
+                    : m.isActive ? 'Desactivar' : 'Activar'}
+                </button>
               </td>
             </tr>
           ))}

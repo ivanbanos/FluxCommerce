@@ -37,10 +37,10 @@ function AdminPanel() {
       </aside>
       <main style={{ flex: 1, background: '#fff', minHeight: '100vh' }}>
         <Routes>
-          <Route path="/admin/articles" element={<MerchantArticles />} />
-          <Route path="/admin/orders" element={<MerchantOrders />} />
-          <Route path="/admin/orders/:orderId" element={<MerchantOrderDetail />} />
-          <Route path="/admin" element={
+          <Route path="articles" element={<MerchantArticles />} />
+          <Route path="orders" element={<MerchantOrders />} />
+          <Route path="orders/:orderId" element={<MerchantOrderDetail />} />
+          <Route path="" element={
             <div style={{ padding: 24 }}>
               <h2>Panel de administración</h2>
               <p>Bienvenido, <b>{name}</b> ({email})</p>

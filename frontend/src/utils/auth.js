@@ -4,7 +4,7 @@ export function getMerchantIdFromToken() {
   if (!token) return null;
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.sub || payload.merchantId || null;
+  return payload.nameid || payload.sub || payload.merchantId || null;
   } catch {
     return null;
   }

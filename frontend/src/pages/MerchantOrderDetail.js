@@ -2,12 +2,29 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getMerchantIdFromToken } from '../utils/auth';
 
+
 function MerchantOrderDetail() {
   const { orderId } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  // Tracking number state
+  const [trackingNumber, setTrackingNumber] = useState('');
+  const [trackingEdit, setTrackingEdit] = useState(false);
+  const [trackingLoading, setTrackingLoading] = useState(false);
+  const [trackingError, setTrackingError] = useState('');
+  const [trackingSuccess, setTrackingSuccess] = useState('');
+
+  // Estado para marcar como enviado/recibido
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState('');
+  const [sendSuccess, setSendSuccess] = useState('');
+
+  const [receiving, setReceiving] = useState(false);
+  const [receiveError, setReceiveError] = useState('');
+  const [receiveSuccess, setReceiveSuccess] = useState('');
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -37,13 +54,39 @@ function MerchantOrderDetail() {
     fetchOrder();
   }, [orderId]);
 
-  if (loading) return <div style={{ padding: 24 }}>Cargando...</div>;
-  if (error) return <div style={{ padding: 24, color: 'red' }}>{error}</div>;
-  if (!order) return null;
+  useEffect(() => {
+    if (order && order.trackingNumber) {
+      setTrackingNumber(order.trackingNumber);
+    }
+  }, [order]);
 
-  const [sending, setSending] = useState(false);
-  const [sendError, setSendError] = useState('');
-  const [sendSuccess, setSendSuccess] = useState('');
+  const handleTrackingSubmit = async (e) => {
+    e.preventDefault();
+    setTrackingLoading(true);
+    setTrackingError('');
+    setTrackingSuccess('');
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`/api/order/${order.id || order._id}/tracking`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ trackingNumber })
+      });
+      if (res.ok) {
+        setOrder({ ...order, trackingNumber });
+        setTrackingSuccess('Número de guía actualizado');
+        setTrackingEdit(false);
+      } else {
+        setTrackingError('No se pudo actualizar el número de guía');
+      }
+    } catch {
+      setTrackingError('Error de red');
+    }
+    setTrackingLoading(false);
+  };
 
   const handleMarkAsShipped = async () => {
     setSending(true);
@@ -67,6 +110,38 @@ function MerchantOrderDetail() {
     setSending(false);
   };
 
+  const handleMarkAsReceived = async () => {
+    setReceiving(true);
+    setReceiveError('');
+    setReceiveSuccess('');
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`/api/order/${order.id || order._id}/receive`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setOrder({ ...order, status: 'recibido' });
+        setReceiveSuccess('Orden marcada como recibida');
+      } else {
+        setReceiveError('No se pudo actualizar el estado');
+      }
+    } catch {
+      setReceiveError('Error de red');
+    }
+    setReceiving(false);
+  };
+
+  if (loading) {
+    return <div style={{ padding: 24 }}>Cargando...</div>;
+  }
+  if (error) {
+    return <div style={{ padding: 24, color: 'red' }}>{error}</div>;
+  }
+  if (!order) {
+    return <div style={{ padding: 24, color: 'red' }}>No se encontró la orden.</div>;
+  }
+
   return (
     <div style={{ padding: 24, maxWidth: 700 }}>
       <button onClick={() => navigate(-1)} style={{ marginBottom: 16 }}>&larr; Volver</button>
@@ -77,13 +152,60 @@ function MerchantOrderDetail() {
         <b>Fecha:</b> {new Date(order.createdAt).toLocaleString()} <br />
         <b>Estado:</b> {order.status} <br />
         <b>Total pagado:</b> ${order.total?.toFixed(2)}
-        {order.status !== 'enviado' && (
+        <br />
+        {/* Número de guía: solo si la orden está enviada o recibida */}
+        {(order.status === 'enviado' || order.status === 'recibido') && (
+          <div style={{ marginTop: 16 }}>
+            <b>Número de guía:</b>{' '}
+            {order.trackingNumber && !trackingEdit ? (
+              <>
+                <span>{order.trackingNumber}</span>
+                {order.status === 'enviado' && (
+                  <button style={{ marginLeft: 12 }} onClick={() => setTrackingEdit(true)}>
+                    Editar
+                  </button>
+                )}
+              </>
+            ) : order.status === 'enviado' ? (
+              <form onSubmit={handleTrackingSubmit} style={{ display: 'inline' }}>
+                <input
+                  type="text"
+                  value={trackingNumber}
+                  onChange={e => setTrackingNumber(e.target.value)}
+                  placeholder="Número de guía"
+                  style={{ marginRight: 8 }}
+                  required
+                />
+                <button type="submit" disabled={trackingLoading}>
+                  {trackingLoading ? 'Guardando...' : 'Guardar'}
+                </button>
+                <button type="button" onClick={() => { setTrackingEdit(false); setTrackingError(''); setTrackingSuccess(''); }} style={{ marginLeft: 8 }}>
+                  Cancelar
+                </button>
+              </form>
+            ) : null}
+            {trackingError && <span style={{ color: 'red', marginLeft: 12 }}>{trackingError}</span>}
+            {trackingSuccess && <span style={{ color: 'green', marginLeft: 12 }}>{trackingSuccess}</span>}
+          </div>
+        )}
+        {/* Botón para marcar como enviado si no está enviado ni recibido */}
+        {order.status !== 'enviado' && order.status !== 'recibido' && (
           <div style={{ marginTop: 16 }}>
             <button onClick={handleMarkAsShipped} disabled={sending} style={{ padding: 10, background: '#1976d2', color: '#fff', border: 'none', borderRadius: 4 }}>
               {sending ? 'Enviando...' : 'Marcar como enviado'}
             </button>
             {sendError && <span style={{ color: 'red', marginLeft: 12 }}>{sendError}</span>}
             {sendSuccess && <span style={{ color: 'green', marginLeft: 12 }}>{sendSuccess}</span>}
+          </div>
+        )}
+        {/* Botón para marcar como recibido si está enviado */}
+        {order.status === 'enviado' && (
+          <div style={{ marginTop: 16 }}>
+            <button onClick={handleMarkAsReceived} disabled={receiving} style={{ padding: 10, background: '#388e3c', color: '#fff', border: 'none', borderRadius: 4 }}>
+              {receiving ? 'Actualizando...' : 'Marcar como recibido'}
+            </button>
+            {receiveError && <span style={{ color: 'red', marginLeft: 12 }}>{receiveError}</span>}
+            {receiveSuccess && <span style={{ color: 'green', marginLeft: 12 }}>{receiveSuccess}</span>}
           </div>
         )}
       </div>

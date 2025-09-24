@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 
+
 export default function CartPage() {
-  const { cart, removeFromCart, clearCart } = useCart();
+  const { cart, removeFromCart, clearCart, updateQty } = useCart();
   const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
   const navigate = useNavigate();
 
@@ -31,7 +33,24 @@ export default function CartPage() {
                   <span>{item.name}</span>
                 </div>
               </td>
-              <td>{item.qty}</td>
+              <td>
+                <button
+                  onClick={() => updateQty(item.id, item.qty - 1)}
+                  disabled={item.qty <= 1}
+                  style={{ padding: '2px 8px', marginRight: 4 }}
+                >-</button>
+                <input
+                  type="number"
+                  min={1}
+                  value={item.qty}
+                  onChange={e => updateQty(item.id, Number(e.target.value))}
+                  style={{ width: 40, textAlign: 'center' }}
+                />
+                <button
+                  onClick={() => updateQty(item.id, item.qty + 1)}
+                  style={{ padding: '2px 8px', marginLeft: 4 }}
+                >+</button>
+              </td>
               <td>${item.price}</td>
               <td>${(item.price * item.qty).toFixed(2)}</td>
               <td>
@@ -46,11 +65,10 @@ export default function CartPage() {
       <button
         style={{ marginTop: 16, marginLeft: 16, background: '#1976d2', color: '#fff', border: 'none', borderRadius: 4, padding: 10, cursor: 'pointer' }}
         onClick={() => {
-          clearCart();
-          navigate('/payment-success');
+          navigate('/shipping');
         }}
       >
-        Proceder al pago
+        Seleccionar dirección y contacto
       </button>
     </div>
   );
