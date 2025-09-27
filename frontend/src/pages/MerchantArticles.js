@@ -47,11 +47,15 @@ function MerchantArticles() {
     form.images.forEach((img, idx) => {
       formData.append("images", img);
     });
-    let url = "/api/merchant/product";
+    // Always send merchantId
+    const merchantId = getMerchantIdFromToken();
+    formData.append("merchantId", merchantId);
+    let url = "/api/product";
     let method = "POST";
     if (editing) {
-      url = `/api/merchant/product/${editing.id}`;
+      url = `/api/product`;
       method = "PUT";
+      formData.append("id", editing.id);
     }
     try {
       const res = await fetch(url, {
@@ -88,7 +92,7 @@ function MerchantArticles() {
     setMessage("");
     const token = localStorage.getItem("token");
     try {
-      const res = await fetch(`/api/merchant/product/${prod.id}`, {
+      const res = await fetch(`/api/product/${prod.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

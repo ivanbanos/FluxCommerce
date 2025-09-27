@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using MediatR;
 using FluxCommerce.Api.Application.Commands;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using FluxCommerce.Api.Application.Queries;
 
 namespace FluxCommerce.Api.Controllers
 {
@@ -17,6 +19,14 @@ namespace FluxCommerce.Api.Controllers
             _mongoDbService = mongoDbService;
             _mediator = mediator;
         }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateProduct([FromForm] CreateProductCommand command)
+        {
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
         [HttpPut]
         public async Task<IActionResult> UpdateProduct([FromForm] UpdateProductCommand command)
         {
@@ -43,6 +53,15 @@ namespace FluxCommerce.Api.Controllers
             if (product == null)
                 return NotFound();
             return Ok(product);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> SoftDeleteProduct(string id)
+        {
+            var result = await _mongoDbService.SoftDeleteProductAsync(id);
+            if (!result)
+                return NotFound();
+            return Ok();
         }
     }
 }
