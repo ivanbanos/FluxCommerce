@@ -11,10 +11,68 @@ This repository uses **MongoDB** for data storage, **.NET (ASP.NET Core)** for t
 - Use async/await for all database and network operations.
 - Ensure all new code is covered by appropriate error handling and validation.
 
+
 ## Frontend Architecture
 - Built with **React** and communicates with the backend via RESTful endpoints, using fetch or similar APIs.
+- Uses **react-router-dom** for client-side routing. All main pages and navigation are defined in `App.js` using `<Routes>` and `<Route>` components.
+- To add a new route, import the page component and add a `<Route path="/your-path" element={<YourComponent />} />` inside the `<Routes>` block in `App.js`.
+- Example:
+	```jsx
+	<Route path="/store" element={<StoreList />} />
+	```
 - All new features and bug fixes should follow the established CQRS and MediatR patterns in the backend.
 - When adding new endpoints, always update both the backend controller and the frontend API calls to keep them in sync.
+
+## Project Structure
+
+```
+FluxCommerce/
+├── backend/
+│   ├── Application/
+│   │   ├── Commands/
+│   │   ├── Handlers/
+│   │   └── Queries/
+│   ├── Common/
+│   ├── Controllers/
+│   ├── Data/
+│   ├── Models/
+│   ├── ProductImages/
+│   ├── Properties/
+│   ├── Services/
+│   ├── appsettings.json
+│   └── Program.cs
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── pages/
+│   │   ├── App.js
+│   │   ├── setupProxy.js
+│   │   └── ...
+│   └── package.json
+├── COPILOT_INSTRUCTIONS.md
+├── FluxCommerce.sln
+├── LICENSE
+└── README.md
+```
+
+
+## Demo Data: Seeding Stores and Products
+
+To quickly populate your MongoDB database with 10 demo stores and realistic products, use the provided script:
+
+1. Make sure Python and `pymongo` are installed:
+	```
+	pip install pymongo
+	```
+2. Run the script from the project root:
+	```
+	python backend/scripts/generate_stores.py
+	```
+3. This will create demo merchants and products in MongoDB, and save their credentials to `store_credentials.txt`.
+
+---
 
 ## Development Conventions
 - All new features should follow the CQRS pattern and use MediatR for backend logic.
