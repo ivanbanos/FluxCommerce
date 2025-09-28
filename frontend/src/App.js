@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import CartIcon from './components/CartIcon';
 
 import StoreList from './pages/StoreList';
+import LandingPage from './pages/LandingPage';
 import MerchantSetupWizard from './pages/MerchantSetupWizard';
 import TrackOrders from './pages/TrackOrders';
 import RegisterPage from './pages/RegisterPage';
@@ -31,23 +32,24 @@ function App() {
           <CartIcon />
         </div>
         <Routes>
-          <Route path="/" element={<StoreList />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/merchant/login" element={<LoginPage />} />
           <Route path="/admin/*" element={
             <ProtectedRoute>
               <AdminPanel />
             </ProtectedRoute>
           } />
-          <Route path="/admin-login" element={<AdminLoginPage />} />
+          <Route path="/login" element={<AdminLoginPage />} />
           <Route path="/superadmin" element={
             <ProtectedAdminRoute>
               <SuperAdminDashboard />
             </ProtectedAdminRoute>
           } />
-  <Route path="/cart" element={<CartPage />} />
-  <Route path="/shipping" element={<ShippingPage />} />
-  <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/shipping" element={<ShippingPage />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/store" element={<StoreList />} />
           <Route path="/store/:merchantId" element={<ProductList />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/track-orders" element={<TrackOrders />} />
