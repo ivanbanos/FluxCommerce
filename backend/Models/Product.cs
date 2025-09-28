@@ -19,7 +19,7 @@ namespace FluxCommerce.Api.Models
         public int Stock { get; set; }
         public List<string> Images { get; set; } = new(); // URLs o nombres de archivo
         public int CoverIndex { get; set; } = 0;
-    public string? MerchantId { get; set; }
-    public bool IsDeleted { get; set; } = false;
+        public string? MerchantId { get; set; }
+        public bool IsDeleted { get; set; } = false;
     }
 }
