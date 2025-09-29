@@ -25,7 +25,7 @@ export default function ProductList() {
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
       {products.map(product => (
         <div key={product.id} style={{ border: '1px solid #eee', borderRadius: 8, width: 220, padding: 16, boxShadow: '0 2px 8px #eee' }}>
-          <img src={product.cover || '/placeholder.png'} alt={product.name} style={{ width: '100%', height: 140, objectFit: 'cover', borderRadius: 4 }} />
+          <img src={(window.BASE_URL || 'http://localhost:5265') + (product.cover || '/placeholder.png')} alt={product.name} style={{ width: '100%', height: 140, objectFit: 'cover', borderRadius: 4 }} />
           <h3 style={{ margin: '12px 0 4px 0', fontSize: 18 }}>{product.name}</h3>
           <div style={{ fontWeight: 'bold', color: '#2a2' }}>${product.price}</div>
           <button

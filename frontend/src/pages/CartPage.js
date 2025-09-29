@@ -29,7 +29,7 @@ export default function CartPage() {
             <tr key={item.id} style={{ borderBottom: '1px solid #eee' }}>
               <td>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <img src={item.cover || '/placeholder.png'} alt={item.name} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 4 }} />
+                  <img src={(window.BASE_URL || 'http://localhost:5265') + (item.cover || '/placeholder.png')} alt={item.name} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 4 }} />
                   <span>{item.name}</span>
                 </div>
               </td>
