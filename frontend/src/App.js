@@ -8,6 +8,10 @@ import LandingPage from './pages/LandingPage';
 import MerchantSetupWizard from './pages/MerchantSetupWizard';
 import TrackOrders from './pages/TrackOrders';
 import RegisterPage from './pages/RegisterPage';
+import RegisterCustomer from './pages/RegisterCustomer';
+import LoginCustomer from './pages/LoginCustomer';
+import CustomerMenu from './pages/CustomerMenu';
+import CustomerOrders from './pages/CustomerOrders';
 import LoginPage from './pages/LoginPage';
 import AdminPanel from './pages/AdminPanel';
 import MerchantOrderDetail from './pages/MerchantOrderDetail';
@@ -34,6 +38,10 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/customer/register" element={<RegisterCustomer />} />
+          <Route path="/customer/login" element={<LoginCustomer />} />
+          <Route path="/customer/menu" element={<CustomerMenu />} />
+          <Route path="/customer/orders" element={<CustomerOrders />} />
           <Route path="/merchant/login" element={<LoginPage />} />
           <Route path="/admin/*" element={
             <ProtectedRoute>
