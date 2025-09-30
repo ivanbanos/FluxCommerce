@@ -6,6 +6,7 @@ using MongoDB.Driver;
 using MediatR;
 using FluxCommerce.Api.Application.Handlers;
 using FluxCommerce.Api.Common;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,7 +45,9 @@ builder.Services.AddControllers(options =>
 });
 builder.Services.AddSingleton<FluxCommerce.Api.Services.EmailService>();
 
+
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -53,6 +56,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Expose ProductImages as static files
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "ProductImages")),
+    RequestPath = "/product-images"
+});
 
 app.UseHttpsRedirection();
 app.UseRouting();
