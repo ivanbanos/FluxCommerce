@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { getImageUrl } from '../utils/imageUrl';
 import { useParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
@@ -26,10 +27,10 @@ export default function ProductDetail() {
     <div style={{ maxWidth: 800, margin: '0 auto', padding: 24 }}>
       <div style={{ display: 'flex', gap: 32 }}>
         <div>
-          <img src={(window.BASE_URL || 'http://localhost:5265') + (product.images?.[product.coverIndex] || '/placeholder.png')} alt={product.name} style={{ width: 320, height: 320, objectFit: 'cover', borderRadius: 8 }} />
+          <img src={getImageUrl(product.images?.[product.coverIndex])} alt={product.name} style={{ width: 320, height: 320, objectFit: 'cover', borderRadius: 8 }} />
           <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
             {product.images?.map((img, idx) => (
-              <img key={idx} src={(window.BASE_URL || 'http://localhost:5265') + img} alt='' style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 4, border: idx === product.coverIndex ? '2px solid #1976d2' : '1px solid #ccc' }} />
+              <img key={idx} src={getImageUrl(img)} alt='' style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 4, border: idx === product.coverIndex ? '2px solid #1976d2' : '1px solid #ccc' }} />
             ))}
           </div>
         </div>
