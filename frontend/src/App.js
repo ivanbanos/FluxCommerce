@@ -6,9 +6,14 @@ import HomeIcon from './components/HomeIcon';
 import ChatIcon from './components/ChatIcon'; // NEW
 
 import StoreList from './pages/StoreList';
+import LandingPage from './pages/LandingPage';
 import MerchantSetupWizard from './pages/MerchantSetupWizard';
 import TrackOrders from './pages/TrackOrders';
 import RegisterPage from './pages/RegisterPage';
+import RegisterCustomer from './pages/RegisterCustomer';
+import LoginCustomer from './pages/LoginCustomer';
+import CustomerMenu from './pages/CustomerMenu';
+import CustomerOrders from './pages/CustomerOrders';
 import LoginPage from './pages/LoginPage';
 import AdminPanel from './pages/AdminPanel';
 import MerchantOrderDetail from './pages/MerchantOrderDetail';
@@ -40,23 +45,28 @@ function App() {
         </div>
         </div>
         <Routes>
-          <Route path="/" element={<StoreList />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/customer/register" element={<RegisterCustomer />} />
+          <Route path="/customer/login" element={<LoginCustomer />} />
+          <Route path="/customer/menu" element={<CustomerMenu />} />
+          <Route path="/customer/orders" element={<CustomerOrders />} />
+          <Route path="/merchant/login" element={<LoginPage />} />
           <Route path="/admin/*" element={
             <ProtectedRoute>
               <AdminPanel />
             </ProtectedRoute>
           } />
-          <Route path="/admin-login" element={<AdminLoginPage />} />
+          <Route path="/login" element={<AdminLoginPage />} />
           <Route path="/superadmin" element={
             <ProtectedAdminRoute>
               <SuperAdminDashboard />
             </ProtectedAdminRoute>
           } />
-  <Route path="/cart" element={<CartPage />} />
-  <Route path="/shipping" element={<ShippingPage />} />
-  <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/shipping" element={<ShippingPage />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/store" element={<StoreList />} />
           <Route path="/store/:merchantId" element={<ProductList />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/track-orders" element={<TrackOrders />} />

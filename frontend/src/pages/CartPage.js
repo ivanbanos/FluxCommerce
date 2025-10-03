@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { getImageUrl } from '../utils/imageUrl';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -8,11 +9,12 @@ export default function CartPage() {
   const { cart, removeFromCart, clearCart, updateQty } = useCart();
   const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
   const navigate = useNavigate();
+  const isLogged = !!localStorage.getItem('customerToken');
 
   if (cart.length === 0) return <div style={{ padding: 32 }}>Tu carrito está vacío.</div>;
 
   return (
-    <div style={{ maxWidth: 700, margin: '0 auto', padding: 32 }}>
+    <div style={{ maxWidth: 700, margin: '0 auto', padding: 32, position: 'relative' }}>
       <h2>Carrito de compras</h2>
       <table style={{ width: '100%', marginTop: 24, borderCollapse: 'collapse' }}>
         <thead>
@@ -29,7 +31,7 @@ export default function CartPage() {
             <tr key={item.id} style={{ borderBottom: '1px solid #eee' }}>
               <td>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <img src={item.cover || '/placeholder.png'} alt={item.name} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 4 }} />
+                  <img src={getImageUrl(item.cover)} alt={item.name} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 4 }} />
                   <span>{item.name}</span>
                 </div>
               </td>
@@ -63,13 +65,24 @@ export default function CartPage() {
       <div style={{ marginTop: 24, fontWeight: 'bold', fontSize: 20 }}>Total: ${total.toFixed(2)}</div>
       <button onClick={clearCart} style={{ marginTop: 16, background: '#d32f2f', color: '#fff', border: 'none', borderRadius: 4, padding: 10, cursor: 'pointer' }}>Vaciar carrito</button>
       <button
-        style={{ marginTop: 16, marginLeft: 16, background: '#1976d2', color: '#fff', border: 'none', borderRadius: 4, padding: 10, cursor: 'pointer' }}
+        style={{ marginTop: 16, marginLeft: 16, background: isLogged ? '#1976d2' : '#aaa', color: '#fff', border: 'none', borderRadius: 4, padding: 10, cursor: isLogged ? 'pointer' : 'not-allowed' }}
         onClick={() => {
-          navigate('/shipping');
+          if (isLogged) {
+            navigate('/shipping');
+          } else {
+            navigate('/customer/login');
+          }
         }}
+        disabled={!isLogged}
       >
         Seleccionar dirección y contacto
       </button>
+      {!isLogged && (
+        <button
+          onClick={() => navigate('/customer/login')}
+          style={{ position: 'fixed', bottom: 32, right: 32, zIndex: 1000, background: '#1976d2', color: '#fff', padding: '16px 32px', borderRadius: 8, boxShadow: '0 2px 8px #1976d2', border: 'none', fontSize: 18, cursor: 'pointer' }}
+        >Iniciar sesión para comprar</button>
+      )}
     </div>
   );
 }
