@@ -1,11 +1,12 @@
 using MediatR;
 using FluxCommerce.Models;
-using FluxCommerce.Data;
 using MongoDB.Driver;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
 using System.Text;
+using FluxCommerce.Api.Data;
+using FluxCommerce.Application.Commands;
 
 namespace FluxCommerce.Application.Handlers
 {

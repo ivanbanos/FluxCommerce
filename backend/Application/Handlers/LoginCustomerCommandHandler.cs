@@ -1,6 +1,5 @@
 using MediatR;
 using FluxCommerce.Models;
-using FluxCommerce.Data;
 using MongoDB.Driver;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +10,8 @@ using System;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
+using FluxCommerce.Api.Data;
+using FluxCommerce.Application.Commands;
 
 namespace FluxCommerce.Application.Handlers
 {
