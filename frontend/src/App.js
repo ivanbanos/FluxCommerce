@@ -2,6 +2,8 @@ import React from 'react';
 import { CartProvider } from './context/CartContext';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import CartIcon from './components/CartIcon';
+import HomeIcon from './components/HomeIcon';
+import ChatIcon from './components/ChatIcon'; // NEW
 
 import StoreList from './pages/StoreList';
 import LandingPage from './pages/LandingPage';
@@ -24,6 +26,7 @@ import ProductDetail from './pages/ProductDetail';
 import MerchantArticles from './pages/MerchantArticles';
 import MerchantOrders from './pages/MerchantOrders';
 import CartPage from './pages/CartPage';
+import ChatPage from './pages/ChatPage'; // NEW
 
 import PaymentSuccess from './pages/PaymentSuccess';
 import ShippingPage from './pages/ShippingPage';
@@ -33,7 +36,13 @@ function App() {
     <CartProvider>
       <BrowserRouter>
         <div style={{ width: '100%', background: '#f5f5f5', padding: '12px 0', marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-          <CartIcon />
+          <div style={{display: 'flex', alignItems: 'center', flex: 1}}>
+            <HomeIcon />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <ChatIcon />
+            <CartIcon />
+        </div>
         </div>
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -62,6 +71,9 @@ function App() {
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/track-orders" element={<TrackOrders />} />
           <Route path="/merchant-setup" element={<MerchantSetupWizard />} />
+          {/* NEW: Chat routes */}
+          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/store/:storeId/chat" element={<ChatPage />} />
         </Routes>
       </BrowserRouter>
     </CartProvider>

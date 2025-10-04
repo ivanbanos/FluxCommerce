@@ -193,7 +193,33 @@ namespace FluxCommerce.Api.Data
             return await _orders.Find(o => o.Id == id).FirstOrDefaultAsync();
         }
 
+        public async Task<List<Product>> SearchProductsAsync(string searchTerm, string storeId = "")
+        {
+            Console.WriteLine($"🗄️ MONGO DEBUG: Starting search - SearchTerm: '{searchTerm}', StoreId: '{storeId}'");
 
+            var filterBuilder = Builders<Product>.Filter;
+            var searchFilter = filterBuilder.Or(
+                filterBuilder.Regex(p => p.Name, new MongoDB.Bson.BsonRegularExpression(searchTerm, "i")),
+                filterBuilder.Regex(p => p.Description, new MongoDB.Bson.BsonRegularExpression(searchTerm, "i"))
+            );
+
+            if (!string.IsNullOrEmpty(storeId))
+            {
+                Console.WriteLine($"🏪 MONGO DEBUG: Adding store filter for storeId: '{storeId}'");
+                var storeFilter = filterBuilder.Eq(p => p.MerchantId, storeId);
+                searchFilter = filterBuilder.And(searchFilter, storeFilter);
+            }
+            else
+            {
+                Console.WriteLine($"🌐 MONGO DEBUG: No storeId provided, searching all stores");
+            }
+
+            var products = await _products.Find(searchFilter).ToListAsync();
+
+            Console.WriteLine($"📊 MONGO DEBUG: Database query returned {products.Count} products");
+
+            return products;
+        }
 
     }
 }

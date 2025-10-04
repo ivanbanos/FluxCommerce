@@ -6,6 +6,8 @@ using MongoDB.Driver;
 using MediatR;
 using FluxCommerce.Api.Application.Handlers;
 using FluxCommerce.Api.Common;
+using Microsoft.SemanticKernel;
+using FluxCommerce.Api.Services;
 using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,10 +33,16 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
+// Add Semantic Kernel with Ollama (FREE!) - Suppress experimental warning
+#pragma warning disable SKEXP0070
+builder.Services.AddKernel()
+    .AddOllamaChatCompletion(
+        modelId: "llama3.2:3b",
+        endpoint: new Uri("http://localhost:11434")
+    );
+#pragma warning restore SKEXP0070
 
 // Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -46,6 +54,7 @@ builder.Services.AddControllers(options =>
     options.Filters.Add<ApiExceptionFilter>();
 });
 builder.Services.AddSingleton<FluxCommerce.Api.Services.EmailService>();
+builder.Services.AddScoped<ChatService>();
 
 
 var app = builder.Build();
