@@ -20,6 +20,10 @@ namespace FluxCommerce.Api.Models
         public List<string> Images { get; set; } = new(); // URLs o nombres de archivo
         public int CoverIndex { get; set; } = 0;
         public string? MerchantId { get; set; }
-        public bool IsDeleted { get; set; } = false;
+    public bool IsDeleted { get; set; } = false;
+    /// <summary>
+    /// Palabras clave para mejorar la predicción y el SEO
+    /// </summary>
+    public List<string> Keywords { get; set; } = new();
     }
 }

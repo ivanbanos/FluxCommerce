@@ -7,7 +7,8 @@ function ProductForm({ onSave, initialData, onCancel }) {
     price: '',
     stock: '',
     images: [],
-    coverIndex: 0
+    coverIndex: 0,
+    keywords: '' // campo de palabras clave separadas por coma
   });
   const [error, setError] = useState('');
 
@@ -19,7 +20,8 @@ function ProductForm({ onSave, initialData, onCancel }) {
         price: initialData.price || '',
         stock: initialData.stock || '',
         images: [], // no pre-carga imágenes
-        coverIndex: initialData.coverIndex || 0
+        coverIndex: initialData.coverIndex || 0,
+        keywords: initialData.keywords ? initialData.keywords.join(', ') : ''
       });
     } else {
       setForm({
@@ -61,13 +63,18 @@ function ProductForm({ onSave, initialData, onCancel }) {
       setError('Máximo 5 imágenes');
       return;
     }
-    onSave(form);
+    // Convertir keywords a array
+    const keywordsArr = form.keywords.split(',').map(k => k.trim()).filter(k => k);
+    onSave({ ...form, keywords: keywordsArr });
   };
 
   return (
     <form onSubmit={handleSubmit} style={{ maxWidth: 500, margin: '0 auto' }}>
       <div style={{ marginBottom: 12 }}>
         <input name="name" placeholder="Nombre del producto" value={form.name} onChange={handleChange} required style={{ width: '100%', padding: 8 }} />
+      </div>
+      <div style={{ marginBottom: 12 }}>
+        <input name="keywords" placeholder="Palabras clave (separadas por coma)" value={form.keywords} onChange={handleChange} style={{ width: '100%', padding: 8 }} />
       </div>
       <div style={{ marginBottom: 12 }}>
         <textarea name="description" placeholder="Descripción" value={form.description} onChange={handleChange} rows={3} style={{ width: '100%', padding: 8 }} />

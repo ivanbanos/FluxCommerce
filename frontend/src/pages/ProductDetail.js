@@ -25,6 +25,19 @@ export default function ProductDetail() {
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: 24 }}>
+      {/* Breadcrumbs de palabras clave */}
+      {product.keywords && product.keywords.length > 0 && (
+        <nav style={{ marginBottom: 16 }}>
+          <ol style={{ display: 'flex', gap: 8, listStyle: 'none', padding: 0, margin: 0 }}>
+            {product.keywords.map((kw, idx) => (
+              <li key={idx} style={{ color: '#1976d2', fontWeight: 'bold' }}>
+                {kw}
+                {idx < product.keywords.length - 1 && <span style={{ color: '#888', margin: '0 4px' }}>/</span>}
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )}
       <div style={{ display: 'flex', gap: 32 }}>
         <div>
           <img src={getImageUrl(product.images?.[product.coverIndex])} alt={product.name} style={{ width: 320, height: 320, objectFit: 'cover', borderRadius: 8 }} />
