@@ -37,7 +37,7 @@ builder.Services.AddAuthentication(options =>
 #pragma warning disable SKEXP0070
 builder.Services.AddKernel()
     .AddOllamaChatCompletion(
-        modelId: "llama3.2",
+        modelId: "llama3.2:3b",
         endpoint: new Uri("http://localhost:11434")
     );
 #pragma warning restore SKEXP0070
@@ -54,7 +54,7 @@ builder.Services.AddControllers(options =>
     options.Filters.Add<ApiExceptionFilter>();
 });
 builder.Services.AddSingleton<FluxCommerce.Api.Services.EmailService>();
-builder.Services.AddScoped<ChatService>();
+builder.Services.AddScoped<IChatService, ChatService>();
 
 
 var app = builder.Build();

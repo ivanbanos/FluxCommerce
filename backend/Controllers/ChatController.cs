@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using FluxCommerce.Api.Services;
+using MediatR;
+using FluxCommerce.Api.Application.Commands;
 
 namespace FluxCommerce.Api.Controllers;
 
@@ -7,11 +8,11 @@ namespace FluxCommerce.Api.Controllers;
 [Route("api/[controller]")]
 public class ChatController : ControllerBase
 {
-    private readonly ChatService _chatService;
+    private readonly IMediator _mediator;
 
-    public ChatController(ChatService chatService)
+    public ChatController(IMediator mediator)
     {
-        _chatService = chatService;
+        _mediator = mediator;
     }
 
     [HttpPost("message")]
@@ -19,11 +20,14 @@ public class ChatController : ControllerBase
     {
         try
         {
-            var response = await _chatService.ProcessUserMessageAsync(
-                request.Message,
-                request.UserId,
-                request.StoreId
-            );
+            var command = new ProcessChatRequestCommand
+            {
+                Message = request.Message,
+                UserId = request.UserId,
+                StoreId = request.StoreId
+            };
+
+            var response = await _mediator.Send(command);
 
             return Ok(new { Response = response });
         }
