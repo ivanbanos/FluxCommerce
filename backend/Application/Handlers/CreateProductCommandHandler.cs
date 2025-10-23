@@ -45,7 +45,7 @@ namespace FluxCommerce.Api.Application.Handlers
                 Stock = request.Stock,
                 Images = imageUrls,
                 CoverIndex = request.CoverIndex,
-                MerchantId = request.MerchantId,
+                StoreId = request.StoreId,
                 Keywords = request.Keywords ?? new List<string>()
             };
             await _mongoService.InsertProductAsync(product);

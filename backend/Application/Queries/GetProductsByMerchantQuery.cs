@@ -6,10 +6,10 @@ namespace FluxCommerce.Api.Application.Queries
 {
     public class GetProductsByMerchantQuery : IRequest<IEnumerable<ProductDto>>
     {
-        public string MerchantId { get; set; }
-        public GetProductsByMerchantQuery(string merchantId)
+        public string StoreId { get; set; }
+        public GetProductsByMerchantQuery(string storeId)
         {
-            MerchantId = merchantId;
+            StoreId = storeId;
         }
     }
 }

@@ -32,10 +32,10 @@ namespace FluxCommerce.Api.Controllers
             return Ok();
         }
 
-        [HttpGet("merchant/{merchantId}")]
-        public async Task<IActionResult> GetOrdersByMerchant(string merchantId)
+        [HttpGet("store/{storeId}")]
+        public async Task<IActionResult> GetOrdersByStore(string storeId)
         {
-            var orders = await _mediator.Send(new GetOrdersByMerchantQuery { MerchantId = merchantId });
+            var orders = await _mediator.Send(new GetOrdersByMerchantQuery { StoreId = storeId });
             return Ok(orders);
         }
 

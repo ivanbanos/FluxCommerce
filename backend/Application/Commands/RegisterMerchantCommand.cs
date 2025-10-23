@@ -8,7 +8,7 @@ namespace FluxCommerce.Api.Application.Commands
         public string? Name { get; set; }
         public string? Email { get; set; }
         public string? Password { get; set; }
-        public string? Phone { get; set; } // Nuevo campo
+    // Phone removed: now handled by Store
     }
 
     public class RegisterMerchantResult

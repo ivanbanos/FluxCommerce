@@ -18,7 +18,7 @@ namespace FluxCommerce.Api.Application.Queries
 
         public async Task<IEnumerable<ProductDto>> Handle(GetProductsByMerchantQuery request, CancellationToken cancellationToken)
         {
-            var products = await _mongoDbService.GetProductsByMerchantAsync(request.MerchantId);
+            var products = await _mongoDbService.GetProductsByStoreAsync(request.StoreId);
             return products.Select(p => new ProductDto
             {
                 Id = p.Id,

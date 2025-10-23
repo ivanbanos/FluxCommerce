@@ -6,6 +6,7 @@ import HomeIcon from './components/HomeIcon';
 import ChatIcon from './components/ChatIcon'; // NEW
 
 import StoreList from './pages/StoreList';
+import SelectStore from './pages/SelectStore';
 import LandingPage from './pages/LandingPage';
 import MerchantSetupWizard from './pages/MerchantSetupWizard';
 import TrackOrders from './pages/TrackOrders';
@@ -42,7 +43,7 @@ function App() {
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <ChatIcon />
             <CartIcon />
-        </div>
+          </div>
         </div>
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -52,6 +53,7 @@ function App() {
           <Route path="/customer/menu" element={<CustomerMenu />} />
           <Route path="/customer/orders" element={<CustomerOrders />} />
           <Route path="/merchant/login" element={<LoginPage />} />
+          <Route path="/select-store" element={<SelectStore />} />
           <Route path="/admin/*" element={
             <ProtectedRoute>
               <AdminPanel />
@@ -67,7 +69,7 @@ function App() {
           <Route path="/shipping" element={<ShippingPage />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/store" element={<StoreList />} />
-          <Route path="/store/:merchantId" element={<ProductList />} />
+          <Route path="/store/:storeId" element={<ProductList />} />
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/track-orders" element={<TrackOrders />} />
           <Route path="/merchant-setup" element={<MerchantSetupWizard />} />
@@ -79,5 +81,4 @@ function App() {
     </CartProvider>
   );
 }
-
 export default App;

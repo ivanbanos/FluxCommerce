@@ -1,32 +1,46 @@
 
-
-using System.Collections.Generic;
-using FluxCommerce.Api.Models;
-using MongoDB.Driver;
 using System.Collections.Generic;
 using MongoDB.Driver;
 using System.Threading.Tasks;
 using FluxCommerce.Api.Models;
 
 namespace FluxCommerce.Api.Data
-
-
-
-
 {
-
-
-
     public class MongoDbService
     {
         private readonly IMongoCollection<Merchant> _merchants;
         private readonly IMongoCollection<Product> _products;
         private readonly IMongoCollection<Order> _orders;
+        private readonly IMongoCollection<Store> _stores;
+
         public MongoDbService(MongoDbContext context)
         {
             _merchants = context.Database.GetCollection<Merchant>("Merchants");
             _products = context.Database.GetCollection<Product>("Products");
             _orders = context.Database.GetCollection<Order>("Orders");
+            _stores = context.Database.GetCollection<Store>("Stores");
+        }
+
+        public async Task<List<Store>> GetStoresByMerchantAsync(string merchantId)
+        {
+            var filter = Builders<Store>.Filter.Eq(s => s.MerchantId, merchantId);
+            return await _stores.Find(filter).ToListAsync();
+        }
+
+        public async Task<List<Product>> GetProductsByMerchantAsync(string merchantId)
+        {
+            var filter = Builders<Product>.Filter.Eq(p => p.MerchantId, merchantId);
+            return await _products.Find(filter).ToListAsync();
+        }
+
+        public async Task<List<Order>> GetOrdersByMerchantAsync(string merchantId)
+        {
+            var filter = Builders<Order>.Filter.Eq(o => o.MerchantId, merchantId);
+            return await _orders.Find(filter).ToListAsync();
+        }
+        public async Task<List<Store>> GetAllStoresAsync()
+        {
+            return await _stores.Find(_ => true).ToListAsync();
         }
 
         public async Task InsertOrderAsync(Order order)
@@ -54,27 +68,9 @@ namespace FluxCommerce.Api.Data
             return await _merchants.Find(m => m.Email == email).AnyAsync();
         }
 
-        public async Task<string?> SetupMerchantStoreAsync(string merchantId, string storeName)
-        {
-            // Generar slug único
-            string slug = storeName.ToLower().Replace(" ", "-").Replace("á", "a").Replace("é", "e").Replace("í", "i").Replace("ó", "o").Replace("ú", "u").Replace("ñ", "n");
-            int i = 1;
-            string baseSlug = slug;
-            while (await _merchants.Find(m => m.StoreSlug == slug && m.Id != merchantId).AnyAsync())
-            {
-                slug = $"{baseSlug}-{i++}";
-            }
-            var update = Builders<Merchant>.Update.Set(m => m.Name, storeName).Set(m => m.StoreSlug, slug);
-            var result = await _merchants.UpdateOneAsync(m => m.Id == merchantId, update);
-            return result.ModifiedCount > 0 ? slug : null;
-        }
+        // SetupMerchantStoreAsync removed: now handled by Store logic
 
-        public async Task<bool> SetMerchantActiveAsync(string merchantId, bool isActive)
-        {
-            var update = Builders<Merchant>.Update.Set(m => m.IsActive, isActive);
-            var result = await _merchants.UpdateOneAsync(m => m.Id == merchantId, update);
-            return result.ModifiedCount > 0;
-        }
+        // SetMerchantActiveAsync removed: now handled by Store logic
 
         public async Task InsertMerchantAsync(Merchant merchant)
         {
@@ -97,9 +93,9 @@ namespace FluxCommerce.Api.Data
         }
 
 
-        public async Task<List<Product>> GetProductsByMerchantAsync(string merchantId)
+        public async Task<List<Product>> GetProductsByStoreAsync(string storeId)
         {
-            return await _products.Find(p => p.MerchantId == merchantId && !p.IsDeleted).ToListAsync();
+            return await _products.Find(p => p.StoreId == storeId && !p.IsDeleted).ToListAsync();
         }
 
         public async Task<Product?> GetProductByIdAsync(string id)
@@ -121,41 +117,14 @@ namespace FluxCommerce.Api.Data
         }
 
 
-        public async Task<List<Order>> GetOrdersByMerchantAsync(string merchantId)
+        public async Task<List<Order>> GetOrdersByStoreAsync(string storeId)
         {
-            return await _orders.Find(o => o.MerchantId == merchantId)
+            return await _orders.Find(o => o.StoreId == storeId)
                 .SortByDescending(o => o.CreatedAt)
                 .ToListAsync();
         }
 
-        public async Task<Order> CreateOrderAsync(object request)
-        {
-            // Map request to Order
-            var req = request as dynamic;
-            var order = new Order
-            {
-                BuyerName = req.BuyerName,
-                BuyerEmail = req.BuyerEmail,
-                MerchantId = req.MerchantId,
-                Total = req.Total,
-                Products = new List<OrderProduct>(),
-                CreatedAt = System.DateTime.UtcNow,
-                Status = "pendiente",
-            };
-            foreach (var p in req.Products)
-            {
-                order.Products.Add(new OrderProduct
-                {
-                    ProductId = p.ProductId,
-                    Name = p.Name,
-                    Price = p.Price,
-                    Qty = p.Qty
-                });
-            }
-
-            await _orders.InsertOneAsync(order);
-            return order;
-        }
+        // Removed CreateOrderAsync(object request): use strongly typed CreateOrderCommandHandler
 
         public async Task<bool> SetOrderPaidAsync(string orderId)
         {
@@ -206,20 +175,13 @@ namespace FluxCommerce.Api.Data
             if (!string.IsNullOrEmpty(storeId))
             {
                 Console.WriteLine($"🏪 MONGO DEBUG: Adding store filter for storeId: '{storeId}'");
-                var storeFilter = filterBuilder.Eq(p => p.MerchantId, storeId);
+                var storeFilter = filterBuilder.Eq(p => p.StoreId, storeId);
                 searchFilter = filterBuilder.And(searchFilter, storeFilter);
-            }
-            else
-            {
-                Console.WriteLine($"🌐 MONGO DEBUG: No storeId provided, searching all stores");
             }
 
             var products = await _products.Find(searchFilter).ToListAsync();
-
             Console.WriteLine($"📊 MONGO DEBUG: Database query returned {products.Count} products");
-
             return products;
         }
-
     }
 }

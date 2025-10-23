@@ -24,7 +24,7 @@ function LoginPage() {
         localStorage.setItem('token', data.token);
         localStorage.setItem('merchantName', data.name);
         localStorage.setItem('merchantEmail', data.email);
-        navigate('/admin');
+        navigate('/select-store');
       } else {
         setMessage(data.error || 'Credenciales inválidas');
       }
