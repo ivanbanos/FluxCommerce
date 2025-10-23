@@ -39,6 +39,18 @@ ollama pull llama3.2:3b
 ollama serve
 ```
 
+## Instalación de Ollama
+
+```bash
+# Windows: Descargar desde https://ollama.com/download/windows
+# macOS: brew install ollama
+# Linux: curl -fsSL https://ollama.com/install.sh | sh
+
+# Instalar modelo en la terminal llama estos comandos
+ollama pull llama3.2:3b
+ollama serve
+```
+
 ## Backend Architecture
 
 - Follows the **CQRS pattern** using **MediatR**: all business logic is implemented in Commands (for writes) and Queries (for reads), which are called from Controllers.

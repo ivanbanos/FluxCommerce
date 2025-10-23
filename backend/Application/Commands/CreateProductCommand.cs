@@ -13,5 +13,6 @@ namespace FluxCommerce.Api.Application.Commands
     public List<IFormFile>? Images { get; set; }
     public int CoverIndex { get; set; }
     public string? MerchantId { get; set; }
+    public List<string>? Keywords { get; set; }
     }
 }

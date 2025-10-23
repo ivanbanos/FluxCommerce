@@ -2,12 +2,6 @@ using FluxCommerce.Api.Application.Commands;
 using FluxCommerce.Api.Data;
 using FluxCommerce.Api.Models;
 using MediatR;
-using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace FluxCommerce.Api.Application.Handlers
 {
@@ -51,7 +45,8 @@ namespace FluxCommerce.Api.Application.Handlers
                 Stock = request.Stock,
                 Images = imageUrls,
                 CoverIndex = request.CoverIndex,
-                MerchantId = request.MerchantId
+                MerchantId = request.MerchantId,
+                Keywords = request.Keywords ?? new List<string>()
             };
             await _mongoService.InsertProductAsync(product);
             return product.Id!;

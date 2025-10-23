@@ -26,6 +26,7 @@ namespace FluxCommerce.Api.Application.Handlers
             product.Price = request.Price;
             product.Stock = request.Stock;
             product.CoverIndex = request.CoverIndex;
+            product.Keywords = request.Keywords ?? new List<string>();
 
             // Manejo de imágenes
             if (request.Images != null && request.Images.Count > 0)
