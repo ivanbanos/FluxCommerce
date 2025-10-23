@@ -4,7 +4,9 @@ import { useParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
 export default function ProductList() {
-  const { merchantId } = useParams();
+  const params = useParams();
+  const { storeId: paramStoreId } = params || {};
+  const storeId = paramStoreId || localStorage.getItem('storeId');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
@@ -12,13 +14,18 @@ export default function ProductList() {
   useEffect(() => {
     async function fetchProducts() {
       setLoading(true);
-      const res = await fetch(`/api/product/list/${merchantId}`);
+      if (!storeId) {
+        setProducts([]);
+        setLoading(false);
+        return;
+      }
+      const res = await fetch(`/api/product/list/${storeId}`);
       const data = await res.json();
       setProducts(data);
       setLoading(false);
     }
     fetchProducts();
-  }, [merchantId]);
+  }, [storeId]);
 
   if (loading) return <div>Loading...</div>;
 
@@ -37,7 +44,7 @@ export default function ProductList() {
               price: product.price,
               cover: product.cover,
               stock: product.stock || 1,
-              merchantId: merchantId
+              storeId: storeId
             })}
           >
             Agregar
