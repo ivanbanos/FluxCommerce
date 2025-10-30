@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { getMerchantIdFromToken } from '../utils/auth';
+import { getActiveStoreId } from '../utils/store';
 import { useNavigate } from 'react-router-dom';
 
 function MerchantOrders() {
@@ -13,15 +13,15 @@ function MerchantOrders() {
     const fetchOrders = async () => {
       setLoading(true);
       setError('');
-      const merchantId = getMerchantIdFromToken();
+      const storeId = getActiveStoreId();
       const token = localStorage.getItem('token');
-      if (!merchantId) {
-        setError('No autenticado');
+      if (!storeId) {
+        setError('Seleccione una tienda primero');
         setLoading(false);
         return;
       }
       try {
-        const res = await fetch(`/api/order/merchant/${merchantId}`, {
+        const res = await fetch(`/api/order/store/${storeId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {

@@ -18,7 +18,7 @@ namespace FluxCommerce.Api.Application.Handlers
 
         public async Task<List<Order>> Handle(GetOrdersByMerchantQuery request, CancellationToken cancellationToken)
         {
-            return await _mongoDbService.GetOrdersByMerchantAsync(request.MerchantId);
+            return await _mongoDbService.GetOrdersByStoreAsync(request.StoreId);
         }
     }
 }

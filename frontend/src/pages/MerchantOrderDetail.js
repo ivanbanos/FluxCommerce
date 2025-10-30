@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getMerchantIdFromToken } from '../utils/auth';
 
 
 function MerchantOrderDetail() {

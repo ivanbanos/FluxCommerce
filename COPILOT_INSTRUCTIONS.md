@@ -34,7 +34,7 @@ This repository uses **MongoDB** for data storage, **.NET 8 (ASP.NET Core)** for
 # macOS: brew install ollama
 # Linux: curl -fsSL https://ollama.com/install.sh | sh
 
-# Instalar modelo
+# Instalar modelo en la terminal llama estos comandos
 ollama pull llama3.2:3b
 ollama serve
 ```

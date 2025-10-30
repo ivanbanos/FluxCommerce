@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ProductForm from "../components/ProductForm";
-import { getMerchantIdFromToken } from "../utils/auth";
+import { getActiveStoreId } from "../utils/store";
 
 function MerchantArticles() {
   const [message, setMessage] = useState("");
@@ -14,8 +14,13 @@ function MerchantArticles() {
     setError("");
     const token = localStorage.getItem("token");
     try {
-      const merchantId = getMerchantIdFromToken();
-      const res = await fetch("/api/Product/list/" + merchantId, {
+      const storeId = getActiveStoreId();
+      if (!storeId) {
+        setError('Seleccione una tienda primero');
+        setLoading(false);
+        return;
+      }
+      const res = await fetch(`/api/product/list/${storeId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -47,9 +52,13 @@ function MerchantArticles() {
     form.images.forEach((img, idx) => {
       formData.append("images", img);
     });
-    // Always send merchantId
-    const merchantId = getMerchantIdFromToken();
-    formData.append("merchantId", merchantId);
+    // Send storeId (selected store) when creating/updating products
+    const storeId = getActiveStoreId();
+    if (!storeId) {
+      setError('Seleccione una tienda primero');
+      return;
+    }
+    formData.append("storeId", storeId);
     let url = "/api/product";
     let method = "POST";
     if (editing) {

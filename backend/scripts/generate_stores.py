@@ -1,7 +1,5 @@
+
 import bcrypt
-
-
-
 import pymongo
 
 # MongoDB connection
@@ -121,36 +119,48 @@ stores = [
     }
 ]
 
+
 merchant_collection = db["Merchants"]
+store_collection = db["Stores"]
 product_collection = db["Products"]
+
 
 
 with open("store_credentials.txt", "w", encoding="utf-8") as cred_file:
     for store in stores:
-    # Hash the password using official bcrypt for .NET BCrypt.Net compatibility
+        # Hash the password using official bcrypt for .NET BCrypt.Net compatibility
         password_bytes = store["password"][:72].encode("utf-8")
         salt = bcrypt.gensalt(rounds=12)
         password_hash = bcrypt.hashpw(password_bytes, salt).decode("utf-8")
-        # Insert merchant
+        # Insert merchant (no store fields)
         merchant = {
             "Name": store["name"],
             "Email": store["email"],
             "PasswordHash": password_hash,
-            "Phone": "555-123-4567",
-            "StoreSlug": store["name"].lower().replace(" ", "-"),
-            "ActivationToken": "",
-            "State": "active",
-            "IsActive": True
+            "State": "active"
         }
         merchant_id = merchant_collection.insert_one(merchant).inserted_id
 
-        # Insert products for merchant
+        # Insert store for merchant
+        store_doc = {
+            "MerchantId": str(merchant_id),
+            "Name": store["name"],
+            "StoreSlug": store["name"].lower().replace(" ", "-"),
+            "Category": store.get("category", ""),
+            "Address": "",
+            "Phone": "555-123-4567",
+            "State": "active",
+            "IsActive": True
+        }
+        store_id = store_collection.insert_one(store_doc).inserted_id
+
+        # Insert products for store
         for prod in store["products"]:
             product = {
                 "Name": prod["name"],
                 "Price": prod["price"],
                 "Stock": prod["stock"],
-                "MerchantId": str(merchant_id),
+                "StoreId": str(store_id),
                 "IsDeleted": False,
                 "Description": "",
                 "Images": [],

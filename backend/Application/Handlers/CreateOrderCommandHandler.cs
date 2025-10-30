@@ -21,7 +21,7 @@ namespace FluxCommerce.Api.Application.Handlers
             {
                 BuyerName = request.BuyerName,
                 BuyerEmail = request.BuyerEmail,
-                MerchantId = request.MerchantId,
+                StoreId = request.StoreId,
                 Address = request.Address,
                 City = request.City,
                 PostalCode = request.PostalCode,

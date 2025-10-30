@@ -26,12 +26,12 @@ const ShippingPage = () => {
       alert('El carrito está vacío.');
       return;
     }
-    // Tomar merchantId del primer producto (asumiendo un solo merchant por pedido)
-    const merchantId = cart[0].merchantId || cart[0].merchant || '';
+    // Usar storeId seleccionado en localStorage; si no existe, intentar tomar del primer producto
+    const storeId = localStorage.getItem('storeId') || cart[0].storeId || cart[0].store || '';
     const order = {
       buyerName: form.name,
       buyerEmail: form.email,
-      merchantId,
+      storeId,
       address: form.address,
       city: form.city,
       postalCode: form.postalCode,

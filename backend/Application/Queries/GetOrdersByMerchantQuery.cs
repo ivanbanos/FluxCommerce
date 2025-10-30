@@ -6,6 +6,6 @@ namespace FluxCommerce.Api.Application.Queries
 {
     public class GetOrdersByMerchantQuery : IRequest<List<Order>>
     {
-        public string MerchantId { get; set; } = null!;
+    public string StoreId { get; set; } = null!;
     }
 }

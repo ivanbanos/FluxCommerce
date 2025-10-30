@@ -39,10 +39,10 @@ namespace FluxCommerce.Api.Controllers
         }
 
         // Endpoint público para listar productos de una tienda
-        [HttpGet("list/{merchantId}")]
-        public async Task<IActionResult> ListProductsByMerchant(string merchantId)
+        [HttpGet("list/{storeId}")]
+        public async Task<IActionResult> ListProductsByStore(string storeId)
         {
-            var result = await _mediator.Send(new FluxCommerce.Api.Application.Queries.GetProductsByMerchantQuery(merchantId));
+            var result = await _mediator.Send(new FluxCommerce.Api.Application.Queries.GetProductsByMerchantQuery(storeId));
             return Ok(result);
         }
 
