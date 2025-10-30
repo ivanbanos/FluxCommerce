@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using FluxCommerce.Api.Data;
+using System.IO;
 using MongoDB.Driver;
 using MediatR;
 using FluxCommerce.Api.Application.Handlers;
@@ -55,6 +56,7 @@ builder.Services.AddControllers(options =>
 });
 builder.Services.AddSingleton<FluxCommerce.Api.Services.EmailService>();
 builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddSignalR();
 
 
 var app = builder.Build();
@@ -68,10 +70,12 @@ if (app.Environment.IsDevelopment())
 }
 
 // Expose ProductImages as static files
+// Ensure the directory exists to avoid DirectoryNotFoundException when running in new environments
+var productImagesPath = Path.Combine(Directory.GetCurrentDirectory(), "ProductImages");
+Directory.CreateDirectory(productImagesPath);
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider(
-        Path.Combine(Directory.GetCurrentDirectory(), "ProductImages")),
+    FileProvider = new PhysicalFileProvider(productImagesPath),
     RequestPath = "/product-images"
 });
 
@@ -80,6 +84,9 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Map SignalR hubs
+app.MapHub<FluxCommerce.Api.Hubs.ChatHub>("/hubs/chat");
 
 app.Run();
 

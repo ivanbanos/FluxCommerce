@@ -4,6 +4,7 @@ using Microsoft.SemanticKernel.ChatCompletion;
 using FluxCommerce.Api.Application.Queries;
 using MediatR;
 using System.Text.Json;
+using System.IO;
 
 namespace FluxCommerce.Api.Services;
 
@@ -12,18 +13,47 @@ public class ChatService : IChatService
     private readonly Kernel _kernel;
     private readonly IChatCompletionService _chatCompletionService;
     private readonly IMediator _mediator;
+    private readonly string _systemPrompt;
+    private readonly Microsoft.AspNetCore.SignalR.IHubContext<FluxCommerce.Api.Hubs.ChatHub> _hubContext;
 
-    public ChatService(Kernel kernel, IMediator mediator)
+    public ChatService(Kernel kernel, IMediator mediator, Microsoft.AspNetCore.SignalR.IHubContext<FluxCommerce.Api.Hubs.ChatHub> hubContext)
     {
         _kernel = kernel;
         _chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
         _mediator = mediator;
+        _hubContext = hubContext;
+
+        // Load system prompt from external file if available, otherwise use a built-in fallback
+        try
+        {
+            var promptPath = Path.Combine(Directory.GetCurrentDirectory(), "Services", "Prompts", "chat_prompt.txt");
+            if (File.Exists(promptPath))
+            {
+                _systemPrompt = File.ReadAllText(promptPath);
+            }
+            else
+            {
+                _systemPrompt = null!; // will be replaced by fallback in ProcessChatMessageAsync
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"⚠️ Warning: Unable to read chat prompt file: {ex.Message}");
+            _systemPrompt = null!;
+        }
     }
 
     public async Task<string> ProcessChatMessageAsync(string message, string userId, string storeId, CancellationToken cancellationToken = default)
     {
         var chatHistory = new ChatHistory();
-        chatHistory.AddSystemMessage(@"
+        // Prefer external prompt file but fallback to the embedded default
+        if (!string.IsNullOrEmpty(_systemPrompt))
+        {
+            chatHistory.AddSystemMessage(_systemPrompt);
+        }
+        else
+        {
+            chatHistory.AddSystemMessage(@"
             Eres un asistente de compras útil para FluxCommerce, una tienda de comercio electrónico.
             
             REGLAS CRÍTICAS - NUNCA ROMPAS ESTAS REGLAS:
@@ -63,13 +93,27 @@ public class ChatService : IChatService
             
             RECUERDA: Siempre busca primero, nunca inventes productos.
         ");
+        }
 
         chatHistory.AddUserMessage(message);
 
         var result = await _chatCompletionService.GetChatMessageContentAsync(chatHistory, cancellationToken: cancellationToken);
         var aiResponse = result.Content ?? "{\"action\": \"message\", \"message\": \"Lo siento, no pude procesar tu solicitud.\"}";
 
-        // Process the AI response and execute actions
+        // Optionally send a typing/partial message to the client if the AI produced an interim message
+        try
+        {
+            // Try to parse the aiResponse quickly to extract a short message to show
+            var quickJson = System.Text.Json.JsonSerializer.Deserialize<AIResponse>(aiResponse, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            if (quickJson != null && !string.IsNullOrEmpty(quickJson.Message))
+            {
+                // Send intermediate message to the user's group
+                await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveMessage", new object[] { new { sender = "assistant", text = quickJson.Message, timestamp = DateTime.UtcNow } }, cancellationToken);
+            }
+        }
+        catch { /* ignore parsing errors for quick notify */ }
+
+        // Process the AI response and execute actions (this will also send final structured messages via hub)
         var processedResponse = await ProcessAIResponse(aiResponse, userId, storeId, cancellationToken);
 
         Console.WriteLine($"💬 DEBUG: Final response to user: '{processedResponse}'");
@@ -200,39 +244,52 @@ public class ChatService : IChatService
                     var products = await SearchProductsAsync(jsonResponse.Query ?? "", storeId, cancellationToken);
                     Console.WriteLine($"📊 DEBUG: Search completed, found {products.Count} products");
 
-                    return JsonSerializer.Serialize(new
+                    var searchPayload = new
                     {
                         Action = "search_results",
                         Query = jsonResponse.Query,
                         Products = products,
                         Message = $"Encontré {products.Count} productos relacionados con '{jsonResponse.Query}'"
-                    });
+                    };
+
+                    // Send structured result to client via SignalR
+                    await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveAction", new object[] { searchPayload }, cancellationToken);
+
+                    return JsonSerializer.Serialize(searchPayload);
 
                 case "add_to_cart":
                     Console.WriteLine($"🛒 DEBUG: Processing add to cart: ProductId='{jsonResponse.ProductId}', Quantity={jsonResponse.Quantity}");
-                    return JsonSerializer.Serialize(new AIResponse
+                    var addPayload = new AIResponse
                     {
                         Action = "add_to_cart",
                         ProductId = jsonResponse.ProductId,
                         Quantity = jsonResponse.Quantity ?? 1,
                         Message = jsonResponse.Message ?? "Perfecto, voy a agregar ese producto a tu carrito."
-                    });
+                    };
+
+                    await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveAction", new object[] { addPayload }, cancellationToken);
+
+                    return JsonSerializer.Serialize(addPayload);
 
                 case "view_cart":
                     Console.WriteLine($"👁️ DEBUG: Processing view cart request");
-                    return JsonSerializer.Serialize(new AIResponse
+                    var viewPayload = new AIResponse
                     {
                         Action = "view_cart",
                         Message = jsonResponse.Message ?? "Aquí tienes tu carrito:"
-                    });
+                    };
+                    await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveAction", new object[] { viewPayload }, cancellationToken);
+                    return JsonSerializer.Serialize(viewPayload);
 
                 default:
                     Console.WriteLine($"⚠️ DEBUG: Unknown/invalid action received: '{jsonResponse.Action}'");
-                    return JsonSerializer.Serialize(new AIResponse
+                    var fallback = new AIResponse
                     {
                         Action = "message",
                         Message = "Lo siento, hubo un error procesando tu solicitud. ¿Podrías reformular tu pregunta?"
-                    });
+                    };
+                    await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveAction", new object[] { fallback }, cancellationToken);
+                    return JsonSerializer.Serialize(fallback);
             }
         }
         catch (Exception ex)
