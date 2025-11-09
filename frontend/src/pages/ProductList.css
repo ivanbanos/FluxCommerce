@@ -7,9 +7,15 @@
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  /* Use auto-fit + a capped max column width so items stay centered
+     instead of stretching to fill the entire row. This keeps the
+     card layout visually similar to the store list and prevents
+     awkward left-aligned rows when there aren't many items. */
+  grid-template-columns: repeat(auto-fit, minmax(220px, 260px));
+  justify-content: center;
   gap: 20px;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .product-card {
@@ -28,11 +34,14 @@
 
 .product-image {
   width: 100%;
-  height: 160px;
+  /* Use an aspect-ratio so images reserve layout space before load
+     and card heights are stable during layout changes. */
+  aspect-ratio: 4 / 3;
   background: linear-gradient(180deg,#f6f8fb,#fff);
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 .product-image img{
   width: 100%;
@@ -103,5 +112,6 @@
 }
 
 @media (max-width: 520px){
-  .product-image{ height: 120px; }
+  .product-image{ aspect-ratio: 3 / 2; }
+  .product-grid{ grid-template-columns: repeat(auto-fit, minmax(160px, 220px)); }
 }

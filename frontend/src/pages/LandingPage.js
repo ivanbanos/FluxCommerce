@@ -5,13 +5,9 @@ import './LandingPage.css';
 function LandingPage() {
   const navigate = useNavigate();
 
-  const actions = [
-    { to: '/merchant/login', label: 'Login Tienda', variant: 'primary' },
-    { to: '/admin/login', label: 'Login Administrador', variant: 'accent' },
-    { to: '/customer/register', label: 'Registro Cliente', variant: 'outline' },
-    { to: '/customer/menu', label: 'Menú Cliente', variant: 'ghost' },
-    { to: '/store', label: 'Comprar', variant: 'outline' }
-  ];
+  const isLogged = Boolean(
+    localStorage.getItem('customerToken') || localStorage.getItem('token')
+  );
 
   return (
     <div className="landing-root">
@@ -20,15 +16,23 @@ function LandingPage() {
         <p className="landing-sub">Tu tienda y clientes en un solo lugar — rápido, simple y moderno.</p>
 
         <div className="cta-group">
-          {actions.map((a) => (
-            <button
-              key={a.label}
-              className={`cta-btn cta-${a.variant}`}
-              onClick={() => navigate(a.to)}
-            >
-              {a.label}
+          {isLogged ? (
+            <button className={`cta-btn cta-outline`} onClick={() => navigate('/store')}>
+              Comprar
             </button>
-          ))}
+          ) : (
+            <>
+              <button className={`cta-btn cta-outline`} onClick={() => navigate('/customer/register')}>
+                Registro
+              </button>
+              <button className={`cta-btn cta-primary`} onClick={() => navigate('/customer/login')}>
+                Login
+              </button>
+              <button className={`cta-btn cta-outline`} onClick={() => navigate('/store')}>
+                Comprar
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

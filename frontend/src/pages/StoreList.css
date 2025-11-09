@@ -1,9 +1,14 @@
 /* Simple store grid styling */
 .store-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  /* Keep store cards centered like the product list. Use a capped
+     column width so items don't stretch to fill the row when few
+     items are present. */
+  grid-template-columns: repeat(auto-fit, minmax(220px, 260px));
+  justify-content: center;
   gap: 18px;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .store-card {
@@ -24,5 +29,5 @@
 .store-badge{ background:#f1f7ff; color:#0b63b8; padding:4px 8px; border-radius:999px; font-size:12px }
 
 @media (max-width:520px){
-  .store-grid{ grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+  .store-grid{ grid-template-columns: repeat(auto-fit, minmax(140px, 200px)); }
 }
