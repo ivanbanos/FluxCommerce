@@ -1,0 +1,28 @@
+/* Simple store grid styling */
+.store-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 18px;
+  padding: 20px;
+}
+
+.store-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(20,20,20,0.06);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+.store-card:hover{ transform: translateY(-6px); box-shadow: 0 12px 30px rgba(20,20,20,0.10); }
+
+.store-title{ font-weight:700; font-size:16px; }
+.store-sub{ color:#666; font-size:13px }
+.store-meta{ display:flex; gap:8px; align-items:center; justify-content:space-between }
+.store-badge{ background:#f1f7ff; color:#0b63b8; padding:4px 8px; border-radius:999px; font-size:12px }
+
+@media (max-width:520px){
+  .store-grid{ grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+}

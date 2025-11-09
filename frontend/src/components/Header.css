@@ -1,0 +1,76 @@
+:root{ --header-height: 40px; }
+
+.app-header{
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  width: 100%;
+  height: var(--header-height);
+  /* subtle blue gradient matching site accent */
+  background: linear-gradient(90deg, #1976d2 0%, #0b63b8 100%);
+  color: #fff;
+  display: flex;
+  /* align the inner container to the left edge so the brand sits near the corner */
+  justify-content: flex-start;
+  box-shadow: 0 6px 18px rgba(11,99,184,0.12);
+}
+
+.header-inner{
+  width: 100%;
+  /* make the header-inner span the full viewport so right icons align near the right edge */
+  max-width: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* balanced gutter on both sides so brand isn't flush to the edge */
+  padding: 0 16px;
+  height: 100%;
+}
+
+.header-left, .header-right{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Role selector styles */
+.role-label{ display:inline-flex; align-items:center; }
+.role-select{
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.role-select:focus{ outline: none; box-shadow: 0 0 0 4px rgba(255,255,255,0.06); }
+.role-select option{ color: #000; }
+
+.brand{
+  font-weight: 700;
+  font-size: 16px;
+  color: #fff;
+  text-decoration: none;
+  padding-left: 6px; /* small visual offset from the edge */
+}
+
+/* icon links inside header should inherit white color and show subtle hover */
+.header-left a, .header-right a{
+  color: inherit !important;
+  padding: 6px;
+  border-radius: 8px;
+}
+.header-left a:hover, .header-right a:hover{
+  background: rgba(255,255,255,0.08);
+}
+
+/* Smaller screens: reduce header height and icon padding */
+@media (max-width: 560px){
+  :root{ --header-height: 48px; }
+  .header-inner{ padding: 0 12px; }
+  .header-left svg, .header-right svg{ width: 20px; height: 20px; }
+  .header-left a, .header-right a{ padding: 4px; }
+}
