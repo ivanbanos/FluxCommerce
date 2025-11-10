@@ -5,6 +5,7 @@ using FluxCommerce.Api.Application.Queries;
 using MediatR;
 using System.Text.Json;
 using System.IO;
+using FluxCommerce.Api.Models;
 
 namespace FluxCommerce.Api.Services;
 
@@ -13,14 +14,20 @@ public class ChatService : IChatService
     private readonly Kernel _kernel;
     private readonly IChatCompletionService _chatCompletionService;
     private readonly IMediator _mediator;
+    private readonly IVectorSearchService _vectorSearchService;
     private readonly string _systemPrompt;
     private readonly Microsoft.AspNetCore.SignalR.IHubContext<FluxCommerce.Api.Hubs.ChatHub> _hubContext;
 
-    public ChatService(Kernel kernel, IMediator mediator, Microsoft.AspNetCore.SignalR.IHubContext<FluxCommerce.Api.Hubs.ChatHub> hubContext)
+    public ChatService(
+        Kernel kernel, 
+        IMediator mediator, 
+        IVectorSearchService vectorSearchService,
+        Microsoft.AspNetCore.SignalR.IHubContext<FluxCommerce.Api.Hubs.ChatHub> hubContext)
     {
         _kernel = kernel;
         _chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
         _mediator = mediator;
+        _vectorSearchService = vectorSearchService;
         _hubContext = hubContext;
 
         // Load system prompt from external file if available, otherwise use a built-in fallback
@@ -45,114 +52,48 @@ public class ChatService : IChatService
 
     public async Task<string> ProcessChatMessageAsync(string message, string userId, string storeId, CancellationToken cancellationToken = default)
     {
-        var chatHistory = new ChatHistory();
-        // Prefer external prompt file but fallback to the embedded default
-        if (!string.IsNullOrEmpty(_systemPrompt))
-        {
-            chatHistory.AddSystemMessage(_systemPrompt);
-        }
-        else
-        {
-            chatHistory.AddSystemMessage(@"
-            Eres un asistente de compras útil para FluxCommerce, una tienda de comercio electrónico.
-            
-            REGLAS CRÍTICAS - NUNCA ROMPAS ESTAS REGLAS:
-            1. NUNCA inventes productos que no existen
-            2. NUNCA muestres productos sin buscarlos primero en la base de datos
-            3. SOLO usa las acciones definidas: search, add_to_cart, view_cart, message
-            4. SIEMPRE busca en la base de datos antes de mostrar productos
-            
-            INSTRUCCIONES:
-            - SIEMPRE responde ÚNICAMENTE con JSON válido
-            - NO agregues texto fuera del JSON
-            - NO inventes datos de productos
-            
-            ACCIONES PERMITIDAS (SOLO ESTAS):
-            
-            Para buscar productos (OBLIGATORIO antes de mostrar cualquier producto):
-            {""action"": ""search"", ""query"": ""término_de_búsqueda"", ""message"": ""Voy a buscar esos productos para ti""}
-            
-            Para agregar al carrito:
-            {""action"": ""add_to_cart"", ""product_id"": ""ID_REAL_del_producto"", ""quantity"": 1, ""message"": ""Agregando producto al carrito""}
-            
-            Para ver carrito:
-            {""action"": ""view_cart"", ""message"": ""Mostrando tu carrito""}
-            
-            Para respuesta normal:
-            {""action"": ""message"", ""message"": ""Tu_respuesta""}
-            
-            EJEMPLOS CORRECTOS:
-            Usuario: 'Muéstrame cubos rubik'
-            Respuesta: {""action"": ""search"", ""query"": ""cubo rubik"", ""message"": ""Voy a buscar cubos rubik disponibles para ti""}
-            
-            Usuario: 'Qué productos tienes de juegos'
-            Respuesta: {""action"": ""search"", ""query"": ""juegos"", ""message"": ""Te voy a mostrar los juegos disponibles""}
-            
-            NUNCA HAGAS ESTO (EJEMPLO INCORRECTO):
-            {""action"": ""view_products"", ""products"": [...]}  ← ESTO ESTÁ PROHIBIDO
-            
-            RECUERDA: Siempre busca primero, nunca inventes productos.
-        ");
-        }
+        Console.WriteLine($"💬 DEBUG: Processing chat message from user {userId}: '{message}'");
 
-        chatHistory.AddUserMessage(message);
+        // Use external prompt if available, otherwise fallback
+        var systemPrompt = !string.IsNullOrEmpty(_systemPrompt) ? _systemPrompt : GetFallbackSystemPrompt();
 
-        var result = await _chatCompletionService.GetChatMessageContentAsync(chatHistory, cancellationToken: cancellationToken);
-        var aiResponse = result.Content ?? "{\"action\": \"message\", \"message\": \"Lo siento, no pude procesar tu solicitud.\"}";
-
-        // Optionally send a typing/partial message to the client if the AI produced an interim message
         try
         {
-            // Try to parse the aiResponse quickly to extract a short message to show
-            var quickJson = System.Text.Json.JsonSerializer.Deserialize<AIResponse>(aiResponse, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            if (quickJson != null && !string.IsNullOrEmpty(quickJson.Message))
+            var chatHistory = new Microsoft.SemanticKernel.ChatCompletion.ChatHistory();
+            chatHistory.AddSystemMessage(systemPrompt);
+            chatHistory.AddUserMessage(message);
+
+            Console.WriteLine($"🤖 DEBUG: Sending request to AI model...");
+            var response = await _chatCompletionService.GetChatMessageContentAsync(chatHistory, cancellationToken: cancellationToken);
+            
+            var aiResponse = response.Content ?? "No pude generar una respuesta. ¿Podrías reformular tu mensaje?";
+            Console.WriteLine($"🤖 DEBUG: AI Response received: '{aiResponse}'");
+
+            // Try to parse as JSON for quick notifications
+            try
             {
-                // Send intermediate message to the user's group
-                await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveMessage", new object[] { new { sender = "assistant", text = quickJson.Message, timestamp = DateTime.UtcNow } }, cancellationToken);
+                var quickJson = JsonSerializer.Deserialize<AIResponse>(aiResponse);
+                if (!string.IsNullOrEmpty(quickJson?.Message))
+                {
+                    await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveMessage", new object[] 
+                    { 
+                        new { text = quickJson.Message, timestamp = DateTime.UtcNow } 
+                    }, cancellationToken);
+                }
             }
-        }
-        catch { /* ignore parsing errors for quick notify */ }
+            catch { /* ignore parsing errors for quick notify */ }
 
-        // Process the AI response and execute actions (this will also send final structured messages via hub)
-        var processedResponse = await ProcessAIResponse(aiResponse, userId, storeId, cancellationToken);
+            // Process the AI response and execute actions (this will also send final structured messages via hub)
+            var processedResponse = await ProcessAIResponse(aiResponse, userId, storeId, cancellationToken);
 
-        Console.WriteLine($"💬 DEBUG: Final response to user: '{processedResponse}'");
-        return processedResponse;
-    }
-
-    public async Task<List<ProductSearchResult>> SearchProductsAsync(string query, string storeId, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            Console.WriteLine($"🔎 DEBUG: Starting product search with query: '{query}', storeId: '{storeId}'");
-
-            var searchQuery = new SearchProductsQuery
-            {
-                SearchTerm = query,
-                StoreId = storeId
-            };
-
-            Console.WriteLine($"📨 DEBUG: Sending MediatR query: SearchTerm='{searchQuery.SearchTerm}', StoreId='{searchQuery.StoreId}'");
-            var products = await _mediator.Send(searchQuery, cancellationToken);
-            Console.WriteLine($"📦 DEBUG: Received {products.Count} products from handler");
-
-            // Convert to structured results
-            var searchResults = products.Take(10).Select(p => new ProductSearchResult
-            {
-                Id = p.Id ?? "",
-                Name = p.Name ?? "",
-                Description = p.Description ?? "",
-                Price = p.Price,
-            }).ToList();
-
-            Console.WriteLine($"📝 DEBUG: Converted to {searchResults.Count} search results");
-            return searchResults;
+            Console.WriteLine($"💬 DEBUG: Final response to user: '{processedResponse}'");
+            return processedResponse;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"💥 DEBUG: Error in SearchProductsAsync: {ex.Message}");
+            Console.WriteLine($"💥 DEBUG: Error in ProcessChatMessageAsync: {ex.Message}");
             Console.WriteLine($"💥 DEBUG: Stack trace: {ex.StackTrace}");
-            return new List<ProductSearchResult>();
+            return JsonSerializer.Serialize(new { Error = "Hubo un problema procesando tu mensaje. ¿Podrías intentar de nuevo?" });
         }
     }
 
@@ -175,87 +116,77 @@ public class ChatService : IChatService
                 var firstTryResponse = JsonSerializer.Deserialize<AIResponse>(aiResponse, jsonOptions);
                 Console.WriteLine($"🔍 DEBUG: First parse attempt: Action='{firstTryResponse?.Action}', Message='{firstTryResponse?.Message}', Query='{firstTryResponse?.Query}'");
 
-                if (firstTryResponse?.Action == "message" && !string.IsNullOrEmpty(firstTryResponse.Message))
-                {
-                    Console.WriteLine($"🔍 DEBUG: Detected nested JSON, attempting to parse Message field...");
-
-                    // Try to parse the Message field as JSON
-                    try
-                    {
-                        jsonResponse = JsonSerializer.Deserialize<AIResponse>(firstTryResponse.Message, jsonOptions);
-                        Console.WriteLine($"✅ DEBUG: Successfully parsed nested JSON: Action='{jsonResponse?.Action}', Query='{jsonResponse?.Query}'");
-                    }
-                    catch (JsonException)
-                    {
-                        jsonResponse = firstTryResponse;
-                    }
-                }
-                else
+                if (firstTryResponse?.Action != null)
                 {
                     jsonResponse = firstTryResponse;
-                    Console.WriteLine($"✅ DEBUG: Using direct parse result: Action='{jsonResponse?.Action}', Query='{jsonResponse?.Query}'");
                 }
             }
             catch (JsonException ex)
             {
-                Console.WriteLine($"❌ DEBUG: Failed to parse AI response as JSON: {ex.Message}");
+                Console.WriteLine($"⚠️ DEBUG: Initial JSON parsing failed: {ex.Message}");
+            }
 
-                if (aiResponse.Contains("\"action\""))
+            // If parsing fails, try to extract from potential markdown code block
+            if (jsonResponse?.Action == null && aiResponse.Contains("```"))
+            {
+                Console.WriteLine($"🔧 DEBUG: Attempting to extract JSON from markdown code block...");
+                var startIndex = aiResponse.IndexOf("```json");
+                if (startIndex == -1) startIndex = aiResponse.IndexOf("```");
+                
+                if (startIndex != -1)
                 {
-                    Console.WriteLine($"🔍 DEBUG: Attempting regex extraction...");
-                    try
+                    startIndex = aiResponse.IndexOf("{", startIndex);
+                    var endIndex = aiResponse.LastIndexOf("}");
+                    
+                    if (startIndex != -1 && endIndex != -1 && endIndex > startIndex)
                     {
-                        var startIndex = aiResponse.IndexOf("{");
-                        if (startIndex >= 0)
+                        var jsonContent = aiResponse.Substring(startIndex, endIndex - startIndex + 1);
+                        Console.WriteLine($"🔧 DEBUG: Extracted JSON: '{jsonContent}'");
+                        
+                        try
                         {
-                            var endIndex = aiResponse.LastIndexOf("}");
-                            if (endIndex > startIndex)
-                            {
-                                var extractedJson = aiResponse.Substring(startIndex, endIndex - startIndex + 1);
-                                Console.WriteLine($"🔍 DEBUG: Extracted JSON: '{extractedJson}'");
-                                jsonResponse = JsonSerializer.Deserialize<AIResponse>(extractedJson, jsonOptions);
-                                Console.WriteLine($"✅ DEBUG: Successfully parsed extracted JSON: Action='{jsonResponse?.Action}'");
-                            }
+                            jsonResponse = JsonSerializer.Deserialize<AIResponse>(jsonContent, jsonOptions);
+                            Console.WriteLine($"🔍 DEBUG: Extracted parse: Action='{jsonResponse?.Action}', Message='{jsonResponse?.Message}', Query='{jsonResponse?.Query}'");
                         }
-                    }
-                    catch (Exception extractEx)
-                    {
-                        Console.WriteLine($"❌ DEBUG: Failed to extract JSON: {extractEx.Message}");
+                        catch (JsonException ex)
+                        {
+                            Console.WriteLine($"⚠️ DEBUG: Extracted JSON parsing also failed: {ex.Message}");
+                        }
                     }
                 }
             }
 
-            if (jsonResponse == null)
+            // If we still don't have a valid action, return a generic response
+            if (string.IsNullOrEmpty(jsonResponse?.Action))
             {
-                Console.WriteLine($"⚠️ DEBUG: All parsing attempts failed, treating as regular message");
-                return JsonSerializer.Serialize(new AIResponse
-                {
-                    Action = "message",
-                    Message = aiResponse
-                });
+                Console.WriteLine($"⚠️ DEBUG: No valid action found, returning generic response");
+                return JsonSerializer.Serialize(new { Action = "generic_response", Message = aiResponse });
             }
 
-            Console.WriteLine($"🎯 DEBUG: Processing action: '{jsonResponse.Action}' with query: '{jsonResponse.Query}'");
+            var action = jsonResponse.Action?.ToLower();
+            Console.WriteLine($"🎯 DEBUG: Processing action: '{action}' with query: '{jsonResponse.Query}'");
 
-            switch (jsonResponse.Action?.ToLower())
+            switch (action)
             {
                 case "search":
-                    Console.WriteLine($"🔍 DEBUG: Executing search for query: '{jsonResponse.Query}', storeId: '{storeId}'");
-                    var products = await SearchProductsAsync(jsonResponse.Query ?? "", storeId, cancellationToken);
-                    Console.WriteLine($"📊 DEBUG: Search completed, found {products.Count} products");
+                case "search_products":
+                    Console.WriteLine($"🔍 DEBUG: Executing VECTOR search for query: '{jsonResponse.Query}', storeId: '{storeId}'");
+                    var vectorResults = await _vectorSearchService.SearchProductsAsync(jsonResponse.Query ?? "", storeId, 10);
+                    Console.WriteLine($"📊 DEBUG: Vector search completed, found {vectorResults.Count} products");
 
-                    var searchPayload = new
+                    // Send intermediate message first
+                    if (!string.IsNullOrEmpty(jsonResponse.Message))
                     {
-                        Action = "search_results",
-                        Query = jsonResponse.Query,
-                        Products = products,
-                        Message = $"Encontré {products.Count} productos relacionados con '{jsonResponse.Query}'"
-                    };
+                        await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveMessage", new object[] 
+                        { 
+                            new { text = jsonResponse.Message, timestamp = DateTime.UtcNow } 
+                        }, cancellationToken);
+                    }
 
-                    // Send structured result to client via SignalR
-                    await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveAction", new object[] { searchPayload }, cancellationToken);
+                    // Process and send results based on quantity and relevance
+                    await ProcessVectorSearchResults(vectorResults, jsonResponse.Query ?? "", userId, cancellationToken);
 
-                    return JsonSerializer.Serialize(searchPayload);
+                    return JsonSerializer.Serialize(new { Action = "search_completed", ProductCount = vectorResults.Count });
 
                 case "add_to_cart":
                     Console.WriteLine($"🛒 DEBUG: Processing add to cart: ProductId='{jsonResponse.ProductId}', Quantity={jsonResponse.Quantity}");
@@ -273,34 +204,248 @@ public class ChatService : IChatService
 
                 case "view_cart":
                     Console.WriteLine($"👁️ DEBUG: Processing view cart request");
-                    var viewPayload = new AIResponse
+                    var viewCartPayload = new AIResponse
                     {
                         Action = "view_cart",
-                        Message = jsonResponse.Message ?? "Aquí tienes tu carrito:"
+                        Message = jsonResponse.Message ?? "Te muestro tu carrito de compras."
                     };
-                    await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveAction", new object[] { viewPayload }, cancellationToken);
-                    return JsonSerializer.Serialize(viewPayload);
+
+                    await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveAction", new object[] { viewCartPayload }, cancellationToken);
+
+                    return JsonSerializer.Serialize(viewCartPayload);
 
                 default:
-                    Console.WriteLine($"⚠️ DEBUG: Unknown/invalid action received: '{jsonResponse.Action}'");
-                    var fallback = new AIResponse
+                    Console.WriteLine($"❓ DEBUG: Unknown action '{action}', returning generic message");
+                    var genericPayload = new AIResponse
                     {
-                        Action = "message",
-                        Message = "Lo siento, hubo un error procesando tu solicitud. ¿Podrías reformular tu pregunta?"
+                        Action = "generic_response",
+                        Message = jsonResponse.Message ?? aiResponse
                     };
-                    await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveAction", new object[] { fallback }, cancellationToken);
-                    return JsonSerializer.Serialize(fallback);
+
+                    await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveMessage", new object[] 
+                    { 
+                        new { text = genericPayload.Message, timestamp = DateTime.UtcNow } 
+                    }, cancellationToken);
+
+                    return JsonSerializer.Serialize(genericPayload);
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"💥 DEBUG: Error processing AI response: {ex.Message}");
+            Console.WriteLine($"💥 DEBUG: Error in ProcessAIResponse: {ex.Message}");
             Console.WriteLine($"💥 DEBUG: Stack trace: {ex.StackTrace}");
-            return JsonSerializer.Serialize(new AIResponse
-            {
-                Action = "message",
-                Message = "Lo siento, ocurrió un error al procesar tu solicitud."
-            });
+            return JsonSerializer.Serialize(new { Action = "error", Message = "Hubo un problema procesando tu solicitud. ¿Podrías intentar de nuevo?" });
         }
     }
+
+    private async Task ProcessVectorSearchResults(List<ProductSearchResult> vectorResults, string query, string userId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (vectorResults.Count == 0)
+            {
+                // No results - suggest alternatives
+                var noResultsMessage = GenerateNoResultsSuggestion(query);
+                await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveMessage", new object[] 
+                { 
+                    new { text = noResultsMessage, timestamp = DateTime.UtcNow } 
+                }, cancellationToken);
+            }
+            else if (vectorResults.Count == 1)
+            {
+                // Single result - direct recommendation
+                var result = vectorResults[0];
+                var product = result.Product;
+                var singleProductMessage = $"Perfecto! Encontré exactamente lo que necesitas:\n\n" +
+                    $"🛍️ **{product.Name}**\n" +
+                    $"💰 Precio: ${product.Price:F2}\n" +
+                    $"🎯 Relevancia: {result.SimilarityScore:F1}%\n" +
+                    $"📝 {product.Description}\n\n" +
+                    $"¿Te gustaría agregarlo al carrito? Solo dime 'agregar al carrito' y yo me encargo.";
+
+                await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveMessage", new object[] 
+                { 
+                    new { text = singleProductMessage, timestamp = DateTime.UtcNow } 
+                }, cancellationToken);
+
+                // Also send the structured action for the frontend to handle
+                var singleProductPayload = new
+                {
+                    action = "single_recommendation",
+                    product = new
+                    {
+                        id = product.Id,
+                        name = product.Name,
+                        description = product.Description,
+                        price = product.Price,
+                        imageUrl = product.Images?.FirstOrDefault(),
+                        similarityScore = result.SimilarityScore
+                    },
+                    query = query,
+                    message = "Producto recomendado encontrado"
+                };
+
+                await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveAction", new object[] { singleProductPayload }, cancellationToken);
+            }
+            else if (vectorResults.Count <= 5)
+            {
+                // Multiple good options - show comparative list
+                var multipleMessage = $"Encontré {vectorResults.Count} excelentes opciones para '{query}':\n\n";
+                
+                for (int i = 0; i < vectorResults.Count; i++)
+                {
+                    var result = vectorResults[i];
+                    var product = result.Product;
+                    multipleMessage += $"{i + 1}. **{product.Name}** - ${product.Price:F2} (Relevancia: {result.SimilarityScore:F0}%)\n";
+                    if (!string.IsNullOrEmpty(product.Description) && product.Description.Length > 0)
+                    {
+                        var shortDesc = product.Description.Length > 60 
+                            ? product.Description.Substring(0, 60) + "..." 
+                            : product.Description;
+                        multipleMessage += $"   {shortDesc}\n";
+                    }
+                    multipleMessage += $"   ID: {product.Id}\n\n";
+                }
+
+                multipleMessage += "¿Cuál te interesa más? Puedes decirme el nombre del producto o su número para agregarlo al carrito.";
+
+                await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveMessage", new object[] 
+                { 
+                    new { text = multipleMessage, timestamp = DateTime.UtcNow } 
+                }, cancellationToken);
+
+                // Send structured data for frontend processing
+                var multipleProductsPayload = new
+                {
+                    action = "multiple_options",
+                    products = vectorResults.Select(r => new
+                    {
+                        id = r.Product.Id,
+                        name = r.Product.Name,
+                        description = r.Product.Description,
+                        price = r.Product.Price,
+                        imageUrl = r.Product.Images?.FirstOrDefault(),
+                        similarityScore = r.SimilarityScore,
+                        matchingTerms = r.MatchingTerms
+                    }).ToList(),
+                    query = query,
+                    message = $"Múltiples opciones encontradas para {query}"
+                };
+
+                await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveAction", new object[] { multipleProductsPayload }, cancellationToken);
+            }
+            else
+            {
+                // Too many results - show top 5 and suggest refinement
+                var topResults = vectorResults.Take(5).ToList();
+                var tooManyMessage = $"¡Wow! Encontré {vectorResults.Count} productos relacionados con '{query}'. " +
+                    $"Te muestro los 5 más relevantes:\n\n";
+
+                for (int i = 0; i < topResults.Count; i++)
+                {
+                    var result = topResults[i];
+                    var product = result.Product;
+                    tooManyMessage += $"{i + 1}. **{product.Name}** - ${product.Price:F2} ({result.SimilarityScore:F0}%)\n";
+                }
+
+                tooManyMessage += $"\n¿Podrías ser más específico sobre qué tipo de {query} buscas? " +
+                    "Así podré mostrarte opciones más precisas.";
+
+                await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveMessage", new object[] 
+                { 
+                    new { text = tooManyMessage, timestamp = DateTime.UtcNow } 
+                }, cancellationToken);
+
+                // Send structured data for frontend 
+                var tooManyProductsPayload = new
+                {
+                    action = "too_many_results",
+                    products = topResults.Select(r => new
+                    {
+                        id = r.Product.Id,
+                        name = r.Product.Name,
+                        description = r.Product.Description,
+                        price = r.Product.Price,
+                        imageUrl = r.Product.Images?.FirstOrDefault(),
+                        similarityScore = r.SimilarityScore
+                    }).ToList(),
+                    totalCount = vectorResults.Count,
+                    query = query,
+                    message = $"Demasiados resultados para {query}, mostrando los más relevantes"
+                };
+
+                await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveAction", new object[] { tooManyProductsPayload }, cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"💥 DEBUG: Error in ProcessVectorSearchResults: {ex.Message}");
+            
+            var errorMessage = "Lo siento, hubo un problema al procesar los resultados de búsqueda. ¿Podrías intentar con otros términos?";
+            await _hubContext.Clients.Group(userId).SendCoreAsync("ReceiveMessage", new object[] 
+            { 
+                new { text = errorMessage, timestamp = DateTime.UtcNow } 
+            }, cancellationToken);
+        }
+    }
+
+    private string GenerateNoResultsSuggestion(string query)
+    {
+        // Simple implementation - you can enhance this with AI-powered suggestions
+        return $"No encontré productos para '{query}'. ¿Podrías intentar con términos más específicos o preguntarme por una categoría diferente? " +
+               "Por ejemplo: 'comida', 'medicina', 'tecnología', o 'juguetes'.";
+    }
+
+    private string GetFallbackSystemPrompt()
+    {
+        return @"
+Eres un asistente de compras inteligente para FluxCommerce. Tu objetivo es ayudar a los usuarios a encontrar productos, agregar artículos al carrito, y responder preguntas sobre la tienda.
+
+IMPORTANTE: Responde SIEMPRE en formato JSON válido con esta estructura:
+{
+  ""Action"": ""action_type"",
+  ""Message"": ""mensaje_para_usuario"",
+  ""Query"": ""terminos_de_busqueda"",
+  ""ProductId"": ""id_si_aplica"",
+  ""Quantity"": numero_si_aplica
+}
+
+ACCIONES DISPONIBLES:
+- ""search_products"": Para buscar productos. Incluye Query con términos relevantes
+- ""add_to_cart"": Para agregar productos. Incluye ProductId y Quantity
+- ""view_cart"": Para mostrar el carrito
+- ""generic_response"": Para respuestas generales
+
+EJEMPLOS:
+
+Usuario: ""busco algo para cocinar pasta""
+Respuesta: {""Action"": ""search_products"", ""Message"": ""Te ayudo a buscar ingredientes para pasta"", ""Query"": ""pasta ingredientes salsa tomate""}
+
+Usuario: ""necesito medicina para el dolor""
+Respuesta: {""Action"": ""search_products"", ""Message"": ""Busco medicamentos para el dolor"", ""Query"": ""paracetamol medicina dolor analgésico""}
+
+Usuario: ""agregar pizza al carrito""
+Respuesta: {""Action"": ""search_products"", ""Message"": ""Busco pizza para ti"", ""Query"": ""pizza""}
+
+Usuario: ""quiero ver mi carrito""
+Respuesta: {""Action"": ""view_cart"", ""Message"": ""Te muestro tu carrito actual""}
+
+IMPORTANTE: 
+- Utiliza búsqueda semántica: para ""dolor de cabeza"" busca ""paracetamol medicina dolor""
+- Para múltiples palabras, incluye sinónimos y términos relacionados
+- Siempre mantén un tono amigable y servicial
+";
+    }
+}
+
+/// <summary>
+/// Clase para representar las respuestas estructuradas del asistente de IA
+/// </summary>
+public class AIResponse
+{
+    public string? Action { get; set; }
+    public string? Message { get; set; }
+    public string? Query { get; set; }
+    public string? ProductId { get; set; }
+    public int? Quantity { get; set; }
 }

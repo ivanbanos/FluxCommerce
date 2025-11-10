@@ -35,7 +35,7 @@ const ChatPage = () => {
     if (!localStorage.getItem('userId')) localStorage.setItem('userId', userIdStorage);
 
     const conn = new signalR.HubConnectionBuilder()
-      .withUrl('/hubs/chat')
+      .withUrl('http://localhost:5265/hubs/chat')
       .withAutomaticReconnect()
       .build();
 
@@ -64,10 +64,35 @@ const ChatPage = () => {
         const action = (payload.Action || payload.action || '').toLowerCase();
         switch (action) {
           case 'search_results':
-            // Format products into a friendly message
-            const msg = formatProductSearchResults(payload.Products || [], payload.Query || '');
+            // Legacy search results handling
+            const products = payload.products || payload.Products || [];
+            const query = payload.query || payload.Query || '';
+            const msg = formatProductSearchResults(products, query);
             setMessages(prev => [...prev, { id: Date.now(), text: msg, sender: 'assistant', timestamp: new Date() }]);
             break;
+            
+          case 'single_recommendation':
+            // Single product recommendation - already handled by ReceiveMessage
+            // This is for any additional frontend-specific logic
+            console.log('Single product recommendation received:', payload.product);
+            break;
+            
+          case 'multiple_options':
+            // Multiple products - already handled by ReceiveMessage
+            // This could be used for special UI components in the future
+            console.log('Multiple options received:', payload.products?.length || 0, 'products');
+            break;
+            
+          case 'too_many_results':
+            // Too many results - already handled by ReceiveMessage
+            console.log('Too many results, showing top:', payload.products?.length || 0, 'of', payload.totalCount);
+            break;
+            
+          case 'search_completed':
+            // Search process completed - for analytics or UI updates
+            console.log('Search completed with', payload.ProductCount, 'products found');
+            break;
+            
           case 'add_to_cart':
             if (payload.ProductId) {
               // Try to fetch product details and add to cart
@@ -214,21 +239,23 @@ const ChatPage = () => {
       let result = `Encontré ${products.length} productos relacionados con '${query}':\n\n`;
 
       products.forEach(product => {
-          result += `🛍️ **${product.Name}**\n`;
-          result += `   💰 Precio: $${product.Price.toFixed(2)}\n`;
+          result += `🛍️ **${product.name || product.Name}**\n`;
+          result += `   💰 Precio: $${(product.price || product.Price).toFixed(2)}\n`;
 
-          if (product.Description) {
-              const description = product.Description.length > 80
-                  ? product.Description.substring(0, 80) + "..."
-                  : product.Description;
-              result += `   📝 ${description}\n`;
+          const description = product.description || product.Description;
+          if (description) {
+              const desc = description.length > 80
+                  ? description.substring(0, 80) + "..."
+                  : description;
+              result += `   📝 ${desc}\n`;
           }
 
-          if (product.Category) {
-              result += `   📂 Categoría: ${product.Category}\n`;
+          const category = product.category || product.Category;
+          if (category) {
+              result += `   📂 Categoría: ${category}\n`;
           }
 
-          result += `   🆔 ID: ${product.Id}\n\n`;
+          result += `   🆔 ID: ${product.id || product.Id}\n\n`;
       });
 
       result += "¿Te interesa alguno de estos productos? Solo dime el ID del producto si quieres agregarlo a tu carrito.";

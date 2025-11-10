@@ -56,7 +56,21 @@ builder.Services.AddControllers(options =>
 });
 builder.Services.AddSingleton<FluxCommerce.Api.Services.EmailService>();
 builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddHttpClient<IEmbeddingService, EmbeddingService>();
+builder.Services.AddScoped<IVectorSearchService, VectorSearchService>();
 builder.Services.AddSignalR();
+
+// Add CORS for SignalR and API access from frontend dev server
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials(); // Required for SignalR
+    });
+});
 
 
 var app = builder.Build();
@@ -80,6 +94,7 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 app.UseHttpsRedirection();
+app.UseCors("AllowFrontend");
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();

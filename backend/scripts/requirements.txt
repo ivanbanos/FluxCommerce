@@ -1,0 +1,7 @@
+# Requirements for FluxCommerce Embedding Service
+fastapi==0.104.1
+uvicorn==0.24.0
+sentence-transformers==2.2.2
+torch>=2.6.0
+numpy>=1.24.3
+pydantic>=2.5.0

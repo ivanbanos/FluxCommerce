@@ -26,5 +26,17 @@ namespace FluxCommerce.Api.Models
         /// Palabras clave para mejorar la predicción y el SEO
         /// </summary>
         public List<string> Keywords { get; set; } = new();
+        
+        /// <summary>
+        /// Vector embedding for semantic search (384 dimensions for all-MiniLM-L6-v2)
+        /// </summary>
+        [BsonElement("embedding")]
+        public float[] Embedding { get; set; } = new float[384];
+        
+        /// <summary>
+        /// Combined searchable text (name + description + keywords) used for generating embeddings
+        /// </summary>
+        [BsonElement("searchableText")]
+        public string SearchableText { get; set; } = string.Empty;
     }
 }
