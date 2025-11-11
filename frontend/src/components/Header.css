@@ -35,7 +35,7 @@
 
 /* admin button */
 .admin-btn{
-  background: rgba(255,255,255,0.08);
+  background: rgba(11,99,184,0.18);
   color: #fff;
   padding: 6px 10px;
   border-radius: 8px;
@@ -43,7 +43,7 @@
   font-size: 13px;
   font-weight: 600;
 }
-.admin-btn:hover{ background: rgba(255,255,255,0.12); }
+.admin-btn:hover{ background: rgba(11,99,184,0.24); }
 
 /* Role selector styles */
 .role-label{ display:inline-flex; align-items:center; }
@@ -60,13 +60,16 @@
   border-radius: 10px;
   font-size: 13px;
   cursor: pointer;
-  min-width: 130px;
-  box-shadow: 0 12px 28px rgba(11,99,184,0.06);
-  transition: box-shadow 160ms ease, transform 160ms ease;
+  min-width: 88px;
+  box-shadow: none;
+  transition: background 120ms ease, transform 120ms ease;
 }
-.role-select:focus{ outline: none; box-shadow: 0 18px 44px rgba(11,99,184,0.14); transform: translateY(-1px); }
-.role-select option{ color: #05304a; background: #eaf4ff; }
-.role-select:hover{ transform: translateY(-1px); box-shadow: 0 18px 40px rgba(11,99,184,0.1); }
+.role-select:focus{ outline: none; box-shadow: 0 0 0 4px rgba(255,255,255,0.06); }
+.role-select option{ color: #000; }
+.role-select:hover{ transform: translateY(-1px); }
+
+/* ensure the select arrow is visually unobtrusive */
+.role-select::-ms-expand{ display:none; }
 
 /* user menu (icon + dropdown) */
 .user-menu{ position: relative; }

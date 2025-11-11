@@ -31,7 +31,11 @@
 }
 
 .chat-body {
-  background: #ffffff;
+  /* stronger light-blue background to ensure it doesn't read as white */
+  background-color: #e6f4ff;
+  background-image: linear-gradient(180deg,#e6f4ff 0%,#d9eeff 100%);
+  background-repeat: no-repeat;
+  background-size: cover;
   border-radius: 10px;
   height: 100%;
   box-shadow: 0 12px 40px rgba(11,99,184,0.06);
@@ -45,8 +49,8 @@
   align-items:center;
   justify-content:space-between;
   padding: 12px 14px;
-  background: linear-gradient(90deg,#f7fbff,#fff);
-  border-bottom: 1px solid #f1f5f9;
+  background: linear-gradient(90deg,#e6f4ff,#f7fbff);
+  border-bottom: 1px solid rgba(11,99,184,0.06);
   font-weight:700;
 }
 
@@ -65,7 +69,7 @@
   cursor:pointer;
   transition: background 140ms ease, transform 140ms ease;
 }
-.close-btn:hover{ background: rgba(0,0,0,0.06); transform: translateY(-1px); }
+.close-btn:hover{ background: rgba(25,118,210,0.08); transform: translateY(-1px); }
 .close-btn:focus{ outline: none; box-shadow: 0 0 0 4px rgba(25,118,210,0.08); }
 
 .chat-messages{
@@ -79,7 +83,7 @@
 .cp-message{ max-width:100%; }
 .cp-user{ align-self:flex-end; text-align:right; }
 .cp-assistant{ align-self:flex-start; }
-.cp-text{ background:#f1f5f9; padding:8px 10px; border-radius:8px; display:inline-block; }
+.cp-text{ background: #f7fbff; padding:8px 10px; border-radius:8px; display:inline-block; }
 .cp-user .cp-text{ background:linear-gradient(90deg,#1976d2,#0b63b8); color:#fff; }
 .cp-time{ font-size:11px; color:#999; margin-top:4px; }
 .chat-input-row{ display:flex; gap:8px; padding:12px; border-top:1px solid #f1f5f9; }

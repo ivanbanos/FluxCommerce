@@ -6,7 +6,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(120deg, #1976d2 0%, #fff 100%);
+  /* diagonal from white to blue (light on the left -> stronger blue on the right) */
+  background: linear-gradient(120deg, #ffffff 0%, #1976d2 100%);
   padding: 36px 16px;
   box-sizing: border-box;
 }
