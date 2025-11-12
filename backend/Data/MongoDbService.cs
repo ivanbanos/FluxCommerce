@@ -183,5 +183,25 @@ namespace FluxCommerce.Api.Data
             Console.WriteLine($"📊 MONGO DEBUG: Database query returned {products.Count} products");
             return products;
         }
+
+        public IMongoCollection<Product> GetProductCollection()
+        {
+            return _products;
+        }
+
+        public IMongoCollection<Store> GetStoreCollection()
+        {
+            return _stores;
+        }
+
+        public IMongoCollection<Order> GetOrderCollection()
+        {
+            return _orders;
+        }
+
+        public IMongoCollection<Merchant> GetMerchantCollection()
+        {
+            return _merchants;
+        }
     }
 }

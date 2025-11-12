@@ -8,4 +8,14 @@ module.exports = function(app) {
       changeOrigin: true,
     })
   );
+  // Proxy SignalR hub requests (including WebSocket negotiate) to backend
+  app.use(
+    '/hubs',
+    createProxyMiddleware({
+      target: 'http://localhost:5265',
+      changeOrigin: true,
+      ws: true,
+      logLevel: 'debug'
+    })
+  );
 };
