@@ -1,0 +1,157 @@
+:root{ --header-height: 40px; }
+
+.app-header{
+  position: sticky;
+  top: 0;
+  /* raise header stacking so dropdowns can appear above the chat panel */
+  z-index: 10000;
+  width: 100%;
+  height: var(--header-height);
+  /* subtle blue gradient matching site accent */
+  background: linear-gradient(90deg, #1976d2 0%, #0b63b8 100%);
+  color: #fff;
+  display: flex;
+  /* align the inner container to the left edge so the brand sits near the corner */
+  justify-content: flex-start;
+  box-shadow: 0 6px 18px rgba(11,99,184,0.12);
+}
+
+.header-inner{
+  width: 100%;
+  /* make the header-inner span the full viewport so right icons align near the right edge */
+  max-width: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* balanced gutter on both sides so brand isn't flush to the edge */
+  padding: 0 16px;
+  height: 100%;
+}
+
+.header-left, .header-right{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* admin button */
+.admin-btn{
+  background: rgba(11,99,184,0.22);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+.admin-btn:hover{ background: rgba(11,99,184,0.30); }
+
+/* Role toggle styles */
+.role-toggle {
+  display: flex;
+  background: rgba(11,99,184,0.22);
+  border-radius: 20px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.role-option {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.8);
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.role-option:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.1);
+}
+
+.role-option.active {
+  background: #fff;
+  color: #0b63b8;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* user menu (icon + dropdown) */
+.user-menu{ position: relative; }
+.user-menu-button{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(11,99,184,0.18);
+  color: #fff;
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.user-menu-button:hover{ background: rgba(11,99,184,0.26); }
+.user-menu-button svg{ display: block; }
+
+.user-dropdown{
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  background: linear-gradient(180deg,#eaf4ff 0%,#d9eeff 100%); /* light-blue card */
+  color: #05304a;
+  border-radius: 10px;
+  box-shadow: 0 18px 48px rgba(11,99,184,0.12);
+  min-width: 180px;
+  overflow: hidden;
+  border: 1px solid rgba(11,99,184,0.12);
+  /* place dropdown above chat panel */
+  z-index: 10001;
+  transition: transform 160ms ease, opacity 140ms ease;
+}
+.user-dropdown-item{
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  color: inherit;
+  transition: background 120ms ease, color 120ms ease;
+}
+.user-dropdown-item:hover, .user-dropdown-item:focus{
+  background: rgba(11,99,184,0.08); /* bluish hover */
+  outline: none;
+  color: #021a2b;
+}
+
+/* make dropdown items keyboard accessible */
+.user-dropdown-item:focus{ box-shadow: inset 0 0 0 2px rgba(11,99,184,0.08); }
+
+.brand{
+  font-weight: 700;
+  font-size: 16px;
+  color: #fff;
+  text-decoration: none;
+  padding-left: 6px; /* small visual offset from the edge */
+}
+
+/* icon links inside header should inherit white color and show subtle hover */
+.header-left a, .header-right a{
+  color: inherit !important;
+  padding: 6px;
+  border-radius: 8px;
+}
+.header-left a:hover, .header-right a:hover{
+  background: rgba(11,99,184,0.18);
+}
+
+/* Smaller screens: reduce header height and icon padding */
+@media (max-width: 560px){
+  :root{ --header-height: 48px; }
+  .header-inner{ padding: 0 12px; }
+  .header-left svg, .header-right svg{ width: 20px; height: 20px; }
+  .header-left a, .header-right a{ padding: 4px; }
+}

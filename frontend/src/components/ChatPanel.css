@@ -1,0 +1,149 @@
+.chat-panel {
+  /* variables control sizes */
+  --handle-width: 48px;
+  --chat-width: 360px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--header-height));
+  transition: flex-basis 220ms ease, width 220ms ease, opacity 220ms ease, transform 220ms ease;
+  z-index: 60;
+  flex: 0 0 var(--chat-width);
+  min-width: var(--handle-width);
+  overflow: hidden;
+  opacity: 1;
+}
+
+.chat-panel.open {
+  flex: 0 0 var(--chat-width);
+  width: var(--chat-width);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* When closed, collapse fully (use !important to avoid conflicts) */
+.chat-panel.closed {
+  flex: 0 0 0 !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.chat-body {
+  /* stronger light-blue background to ensure it doesn't read as white */
+  background-color: #e6f4ff;
+  background-image: linear-gradient(180deg,#e6f4ff 0%,#d9eeff 100%);
+  background-repeat: no-repeat;
+  background-size: cover;
+  border-radius: 10px;
+  height: 100%;
+  box-shadow: 0 12px 40px rgba(11,99,184,0.06);
+  display:flex;
+  flex-direction:column;
+  overflow: hidden;
+}
+
+.chat-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 12px 14px;
+  background: linear-gradient(90deg,#e6f4ff,#f7fbff);
+  border-bottom: 1px solid rgba(11,99,184,0.06);
+  font-weight:700;
+}
+
+/* polished close button */
+.close-btn{
+  background: transparent;
+  border: none;
+  color: inherit;
+  width: 36px;
+  height: 36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:8px;
+  font-size:18px;
+  cursor:pointer;
+  transition: background 140ms ease, transform 140ms ease;
+}
+.close-btn:hover{ background: rgba(25,118,210,0.08); transform: translateY(-1px); }
+.close-btn:focus{ outline: none; box-shadow: 0 0 0 4px rgba(25,118,210,0.08); }
+
+.chat-messages{
+  padding: 12px;
+  overflow:auto;
+  flex:1 1 auto;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.cp-message{ max-width:100%; }
+.cp-user{ align-self:flex-end; text-align:right; }
+.cp-assistant{ align-self:flex-start; }
+.cp-text{ background: #f7fbff; padding:8px 10px; border-radius:8px; display:inline-block; }
+.cp-user .cp-text{ background:linear-gradient(90deg,#1976d2,#0b63b8); color:#fff; }
+.cp-time{ font-size:11px; color:#999; margin-top:4px; }
+.chat-input-row{ display:flex; gap:8px; padding:12px; border-top:1px solid #f1f5f9; }
+.chat-input-row input{ flex:1 1 auto; padding:8px 10px; border-radius:6px; border:1px solid #e6eef8; }
+.chat-input-row button{ padding:8px 12px; border-radius:6px; background:#1976d2; color:#fff; border:none; }
+
+/* resizer bar: sits on the left edge of the chat panel to resize when open */
+.chat-resizer{
+  position: absolute;
+  left: -8px;
+  top: 0;
+  bottom: 0;
+  width: 16px;
+  cursor: col-resize;
+  z-index: 9999;
+  background: transparent;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.chat-panel.closed .chat-resizer{ display: none; }
+
+.chat-resizer::before{
+  content: '';
+  display:block;
+  width:3px;
+  height:48%;
+  background: rgba(0,0,0,0.12);
+  border-radius:3px;
+  transition: background 140ms ease, transform 140ms ease, width 140ms ease;
+}
+.chat-resizer::after{
+  /* three subtle dots to indicate draggable handle */
+  content: '';
+  display:block;
+  width:5px;
+  height:5px;
+  margin-left:8px;
+  background: rgba(0,0,0,0.12);
+  border-radius:50%;
+  box-shadow: 0 -12px 0 rgba(0,0,0,0.12), 0 12px 0 rgba(0,0,0,0.12);
+  opacity:1;
+}
+.chat-resizer:hover{ width:22px; background: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.04) 30%, rgba(0,0,0,0.08) 50%, rgba(0,0,0,0.04) 70%, transparent 100%); }
+.chat-resizer:hover::before{ background: rgba(0,0,0,0.22); transform: scaleX(1.05); }
+.chat-resizer:hover::after{ background: rgba(0,0,0,0.18); box-shadow: 0 -12px 0 rgba(0,0,0,0.18), 0 12px 0 rgba(0,0,0,0.18); }
+
+/* Make the resizer visually clearer on focus (keyboard users) */
+.chat-resizer:focus{ outline: none; box-shadow: 0 0 0 4px rgba(25,118,210,0.08); }
+
+/* Scrollbar styling for the chat messages area to make scrollability more obvious */
+.chat-messages{
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgba(0,0,0,0.18) transparent;
+}
+.chat-messages::-webkit-scrollbar{ width: 10px; }
+.chat-messages::-webkit-scrollbar-track{ background: transparent; }
+.chat-messages::-webkit-scrollbar-thumb{ background: rgba(0,0,0,0.12); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+.chat-messages::-webkit-scrollbar-thumb:hover{ background: rgba(0,0,0,0.2); }
+
+@media (max-width:800px){
+  .chat-panel{ --chat-width: 92vw; }
+}

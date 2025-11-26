@@ -28,6 +28,15 @@
   color: #61dafb;
 }
 
+/* route transition: fade content in on route changes */
+.route-fade{
+  animation: fade-in 260ms ease both;
+}
+@keyframes fade-in{
+  from{ opacity: 0; transform: translateY(6px); }
+  to{ opacity: 1; transform: translateY(0); }
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
@@ -36,3 +45,5 @@
     transform: rotate(360deg);
   }
 }
+
+/* app-shell layout handled inline in App.js; no mobile overrides here */

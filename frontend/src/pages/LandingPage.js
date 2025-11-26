@@ -1,18 +1,39 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import './LandingPage.css';
 
 function LandingPage() {
   const navigate = useNavigate();
 
+  const isLogged = Boolean(
+    localStorage.getItem('customerToken') || localStorage.getItem('token')
+  );
+
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: 'linear-gradient(120deg, #1976d2 0%, #fff 100%)' }}>
-      <h1 style={{ fontSize: 40, color: '#1976d2', marginBottom: 32 }}>Bienvenido a FluxCommerce</h1>
-      <div style={{ display: 'flex', gap: 32 }}>
-        <button onClick={() => navigate('/merchant/login')} style={{ padding: '18px 40px', fontSize: 20, background: '#1976d2', color: '#fff', border: 'none', borderRadius: 8, boxShadow: '0 2px 8px #1976d2', cursor: 'pointer' }}>Login Tienda</button>
-        <button onClick={() => navigate('/admin/login')} style={{ padding: '18px 40px', fontSize: 20, background: '#388e3c', color: '#fff', border: 'none', borderRadius: 8, boxShadow: '0 2px 8px #388e3c', cursor: 'pointer' }}>Login Administrador</button>
-        <button onClick={() => navigate('/customer/register')} style={{ padding: '18px 40px', fontSize: 20, background: '#fff', color: '#388e3c', border: '2px solid #388e3c', borderRadius: 8, boxShadow: '0 2px 8px #eee', cursor: 'pointer' }}>Registro Cliente</button>
-        <button onClick={() => navigate('/customer/menu')} style={{ padding: '18px 40px', fontSize: 20, background: '#fff', color: '#1976d2', border: '2px solid #1976d2', borderRadius: 8, boxShadow: '0 2px 8px #eee', cursor: 'pointer' }}>Menú Cliente</button>
-        <button onClick={() => navigate('/store')} style={{ padding: '18px 40px', fontSize: 20, background: '#fff', color: '#1976d2', border: '2px solid #1976d2', borderRadius: 8, boxShadow: '0 2px 8px #eee', cursor: 'pointer' }}>Comprar</button>
+    <div className="landing-root">
+      <div className="landing-inner">
+        <h1 className="landing-title">Bienvenido a FluxCommerce</h1>
+        <p className="landing-sub">Tu tienda y clientes en un solo lugar — rápido, simple y moderno.</p>
+
+        <div className="cta-group">
+          {isLogged ? (
+            <button className={`cta-btn cta-outline`} onClick={() => navigate('/store')}>
+              Comprar
+            </button>
+          ) : (
+            <>
+              <button className={`cta-btn cta-outline`} onClick={() => navigate('/customer/register')}>
+                Registro
+              </button>
+              <button className={`cta-btn cta-primary`} onClick={() => navigate('/customer/login')}>
+                Login
+              </button>
+              <button className={`cta-btn cta-outline`} onClick={() => navigate('/store')}>
+                Comprar
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

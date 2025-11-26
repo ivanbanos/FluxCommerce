@@ -1,0 +1,134 @@
+/* Styles for the product grid and cards */
+:root{
+  --card-radius: 10px;
+  --card-shadow: 0 6px 18px rgba(20,20,20,0.06);
+  --accent: #1976d2;
+}
+
+.product-grid {
+  display: grid;
+  /* Use auto-fit + a capped max column width so items stay centered
+     instead of stretching to fill the entire row. This keeps the
+     card layout visually similar to the store list and prevents
+     awkward left-aligned rows when there aren't many items. */
+  grid-template-columns: repeat(auto-fit, minmax(220px, 260px));
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.product-card {
+  background: linear-gradient(180deg,#eaf4ff 0%, #e6f4ff 100%);
+  border-radius: var(--card-radius);
+  box-shadow: 0 8px 22px rgba(11,99,184,0.06);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.product-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 36px rgba(11,99,184,0.10);
+}
+
+.product-image {
+  width: 100%;
+  /* Use an aspect-ratio so images reserve layout space before load
+     and card heights are stable during layout changes. */
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(180deg,#f6fbff,#fff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.product-image img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.product-info{
+  padding: 12px 14px 14px 14px;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  color: #05304a;
+}
+.product-title{
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+}
+.product-desc{
+  font-size: 13px;
+  color: #466477;
+  line-height: 1.2;
+  margin-bottom: 10px;
+  flex: 1 1 auto;
+}
+.product-price-row{
+  display:flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.product-price{
+  color: #0a7a3a;
+  font-weight: 700;
+}
+.product-badge{
+  background: linear-gradient(90deg,#d9eeff,#eaf4ff);
+  color: #05304a;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(11,99,184,0.06);
+}
+.product-actions{
+  margin-top: 12px;
+  display:flex;
+  gap:8px;
+}
+.btn {
+  border: none;
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+.btn-primary{
+  background: var(--accent);
+  color: #fff;
+  transition: background 0.2s, transform 0.1s;
+}
+.btn-primary:active {
+  transform: scale(0.96);
+}
+.btn-success {
+  background: #2e7d32; /* Green for success */
+  color: #fff;
+  cursor: default;
+  animation: pop 0.3s ease;
+}
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+.btn-secondary{
+  background: #fff;
+  color: var(--accent);
+  border: 1px solid rgba(25,118,210,0.12);
+}
+.btn[disabled]{
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 520px){
+  .product-image{ aspect-ratio: 3 / 2; }
+  .product-grid{ grid-template-columns: repeat(auto-fit, minmax(160px, 220px)); }
+}

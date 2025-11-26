@@ -3,6 +3,7 @@ import React from 'react';
 import { getImageUrl } from '../utils/imageUrl';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
+import './CartPage.css';
 
 
 export default function CartPage() {
@@ -11,78 +12,63 @@ export default function CartPage() {
   const navigate = useNavigate();
   const isLogged = !!localStorage.getItem('customerToken');
 
-  if (cart.length === 0) return <div style={{ padding: 32 }}>Tu carrito está vacío.</div>;
+  if (cart.length === 0) return (
+    <div className="cart-root">
+      <div className="empty-cart">
+        <h3>Tu carrito está vacío</h3>
+        <p>Parece que aún no has agregado productos. Explora la tienda y añade lo que necesites.</p>
+        <div style={{ marginTop: 12 }}>
+          <button className="btn-primary" onClick={() => navigate('/store')}>Ir a comprar</button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
-    <div style={{ maxWidth: 700, margin: '0 auto', padding: 32, position: 'relative' }}>
-      <h2>Carrito de compras</h2>
-      <table style={{ width: '100%', marginTop: 24, borderCollapse: 'collapse' }}>
-        <thead>
-          <tr style={{ borderBottom: '1px solid #ccc' }}>
-            <th style={{ textAlign: 'left' }}>Producto</th>
-            <th>Cantidad</th>
-            <th>Precio</th>
-            <th>Total</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
+    <div className="cart-root">
+      <h2 className="cart-title">Carrito de compras</h2>
+
+      <div className="cart-grid">
+        <div className="cart-items">
           {cart.map(item => (
-            <tr key={item.id} style={{ borderBottom: '1px solid #eee' }}>
-              <td>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <img src={getImageUrl(item.cover)} alt={item.name} style={{ width: 48, height: 48, objectFit: 'cover', borderRadius: 4 }} />
-                  <span>{item.name}</span>
+            <div className="cart-item" key={item.id}>
+              <img className="cart-item-img" src={getImageUrl(item.cover)} alt={item.name} />
+              <div style={{ flex: 1 }}>
+                <div className="cart-item-name">{item.name}</div>
+                <div className="cart-item-meta">Precio: ${item.price.toFixed(2)}</div>
+                <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div className="qty-controls">
+                    <button className="qty-btn" onClick={() => updateQty(item.id, item.qty - 1)} disabled={item.qty <= 1}>-</button>
+                    <input className="qty-input" type="number" min={1} value={item.qty} onChange={e => updateQty(item.id, Number(e.target.value))} />
+                    <button className="qty-btn" onClick={() => updateQty(item.id, item.qty + 1)}>+</button>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontWeight: 700 }}>${(item.price * item.qty).toFixed(2)}</div>
+                    <button className="remove-btn" onClick={() => removeFromCart(item.id)}>Eliminar</button>
+                  </div>
                 </div>
-              </td>
-              <td>
-                <button
-                  onClick={() => updateQty(item.id, item.qty - 1)}
-                  disabled={item.qty <= 1}
-                  style={{ padding: '2px 8px', marginRight: 4 }}
-                >-</button>
-                <input
-                  type="number"
-                  min={1}
-                  value={item.qty}
-                  onChange={e => updateQty(item.id, Number(e.target.value))}
-                  style={{ width: 40, textAlign: 'center' }}
-                />
-                <button
-                  onClick={() => updateQty(item.id, item.qty + 1)}
-                  style={{ padding: '2px 8px', marginLeft: 4 }}
-                >+</button>
-              </td>
-              <td>${item.price}</td>
-              <td>${(item.price * item.qty).toFixed(2)}</td>
-              <td>
-                <button onClick={() => removeFromCart(item.id)} style={{ background: 'none', border: 'none', color: '#d32f2f', cursor: 'pointer' }}>Eliminar</button>
-              </td>
-            </tr>
+              </div>
+            </div>
           ))}
-        </tbody>
-      </table>
-      <div style={{ marginTop: 24, fontWeight: 'bold', fontSize: 20 }}>Total: ${total.toFixed(2)}</div>
-      <button onClick={clearCart} style={{ marginTop: 16, background: '#d32f2f', color: '#fff', border: 'none', borderRadius: 4, padding: 10, cursor: 'pointer' }}>Vaciar carrito</button>
-      <button
-        style={{ marginTop: 16, marginLeft: 16, background: isLogged ? '#1976d2' : '#aaa', color: '#fff', border: 'none', borderRadius: 4, padding: 10, cursor: isLogged ? 'pointer' : 'not-allowed' }}
-        onClick={() => {
-          if (isLogged) {
-            navigate('/shipping');
-          } else {
-            navigate('/customer/login');
-          }
-        }}
-        disabled={!isLogged}
-      >
-        Seleccionar dirección y contacto
-      </button>
-      {!isLogged && (
-        <button
-          onClick={() => navigate('/customer/login')}
-          style={{ position: 'fixed', bottom: 32, right: 32, zIndex: 1000, background: '#1976d2', color: '#fff', padding: '16px 32px', borderRadius: 8, boxShadow: '0 2px 8px #1976d2', border: 'none', fontSize: 18, cursor: 'pointer' }}
-        >Iniciar sesión para comprar</button>
-      )}
+
+          <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
+            <button className="btn-secondary" onClick={clearCart}>Vaciar carrito</button>
+            <button className="btn-primary" onClick={() => { if (isLogged) { navigate('/shipping'); } else { navigate('/customer/login'); } }} disabled={!isLogged} style={{ opacity: isLogged ? 1 : 0.7 }}>
+              Seleccionar dirección y contacto
+            </button>
+          </div>
+        </div>
+
+        <aside className="cart-summary">
+          <div className="summary-row"><div>Subtotal</div><div>${total.toFixed(2)}</div></div>
+          <div className="summary-row"><div>Envío</div><div>Calculado en el siguiente paso</div></div>
+          <div style={{ height: 1, background: 'rgba(11,99,184,0.06)', margin: '12px 0' }} />
+          <div className="summary-row summary-total"><div>Total</div><div>${total.toFixed(2)}</div></div>
+          <div style={{ marginTop: 12 }}>
+            <button className="btn-primary" onClick={() => { if (isLogged) { navigate('/shipping'); } else { navigate('/customer/login'); } }} disabled={!isLogged}>Ir al pago</button>
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }
