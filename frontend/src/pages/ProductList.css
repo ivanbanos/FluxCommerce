@@ -102,6 +102,21 @@
 .btn-primary{
   background: var(--accent);
   color: #fff;
+  transition: background 0.2s, transform 0.1s;
+}
+.btn-primary:active {
+  transform: scale(0.96);
+}
+.btn-success {
+  background: #2e7d32; /* Green for success */
+  color: #fff;
+  cursor: default;
+  animation: pop 0.3s ease;
+}
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 .btn-secondary{
   background: #fff;

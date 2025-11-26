@@ -12,8 +12,7 @@ export default function Header() {
     localStorage.setItem('userRole', role);
   }, [role]);
 
-  const onRoleChange = (e) => {
-    const newRole = e.target.value;
+  const setRoleAndNavigate = (newRole) => {
     setRole(newRole);
     // Redirect according to the selected role
     if (newRole === 'buyer') {
@@ -64,12 +63,20 @@ export default function Header() {
           <Link to={role === 'seller' ? '/merchant' : '/'} className="brand">FluxCommerce</Link>
         </div>
         <div className="header-right">
-          <label className="role-label" htmlFor="role-select">
-            <select id="role-select" className="role-select" value={role} onChange={onRoleChange} aria-label="Seleccionar rol">
-              <option value="buyer">Customer</option>
-              <option value="seller">Merchant</option>
-            </select>
-          </label>
+          <div className="role-toggle">
+            <button 
+              className={`role-option ${role === 'buyer' ? 'active' : ''}`} 
+              onClick={() => setRoleAndNavigate('buyer')}
+            >
+              Customer
+            </button>
+            <button 
+              className={`role-option ${role === 'seller' ? 'active' : ''}`} 
+              onClick={() => setRoleAndNavigate('seller')}
+            >
+              Merchant
+            </button>
+          </div>
 
           {/* SuperAdmin login button in the top bar */}
           <Link to="/login" className="admin-btn" aria-label="SuperAdmin login">SuperAdmin</Link>

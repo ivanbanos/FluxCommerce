@@ -1,0 +1,139 @@
+.customer-menu-container {
+  min-height: calc(100vh - var(--header-height));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.customer-menu-card {
+  width: 100%;
+  max-width: 480px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(11, 99, 184, 0.15);
+  padding: 32px;
+  text-align: center;
+}
+
+.customer-menu-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #05304a;
+  margin-bottom: 24px;
+}
+
+.customer-menu-section {
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.customer-menu-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #466477;
+  margin-bottom: 8px;
+}
+
+.customer-menu-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e1e8ed;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #05304a;
+  background: #f7fbff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.customer-menu-input:focus {
+  outline: none;
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+.customer-menu-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s, background-color 0.2s;
+  margin-bottom: 12px;
+}
+
+.customer-menu-btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #1976d2 0%, #0b63b8 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(11, 99, 184, 0.2);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(90deg, #1565c0 0%, #0a58a2 100%);
+}
+
+.btn-secondary {
+  background: #eaf4ff;
+  color: #0b63b8;
+}
+
+.btn-secondary:hover {
+  background: #d9eeff;
+}
+
+.btn-danger {
+  background: #fff0f0;
+  color: #d32f2f;
+  margin-top: 12px;
+}
+
+.btn-danger:hover {
+  background: #ffe0e0;
+}
+
+.address-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background: #f7fbff;
+  border-radius: 8px;
+  border: 1px solid #e1e8ed;
+  overflow: hidden;
+}
+
+.address-item {
+  padding: 12px;
+  border-bottom: 1px solid #e1e8ed;
+  color: #05304a;
+  font-size: 14px;
+}
+
+.address-item:last-child {
+  border-bottom: none;
+}
+
+.status-message {
+  font-size: 14px;
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.status-error {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.status-success {
+  background: #e8f5e9;
+  color: #2e7d32;
+}

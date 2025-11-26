@@ -11,6 +11,27 @@ export default function ProductList() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const [addedIds, setAddedIds] = useState({});
+
+  const handleAddToCart = (product) => {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      cover: product.cover,
+      stock: product.stock || 1,
+      storeId: storeId
+    });
+
+    setAddedIds(prev => ({ ...prev, [product.id]: true }));
+    setTimeout(() => {
+      setAddedIds(prev => {
+        const next = { ...prev };
+        delete next[product.id];
+        return next;
+      });
+    }, 1500);
+  };
 
   useEffect(() => {
     async function fetchProducts() {
@@ -87,18 +108,11 @@ export default function ProductList() {
             </div>
             <div className="product-actions">
               <button
-                className="btn btn-primary"
+                className={`btn ${addedIds[product.id] ? 'btn-success' : 'btn-primary'}`}
                 disabled={product.stock <= 0}
-                onClick={() => addToCart({
-                  id: product.id,
-                  name: product.name,
-                  price: product.price,
-                  cover: product.cover,
-                  stock: product.stock || 1,
-                  storeId: storeId
-                })}
+                onClick={() => handleAddToCart(product)}
               >
-                Agregar
+                {addedIds[product.id] ? '¡Agregado!' : 'Agregar'}
               </button>
               <button className="btn btn-secondary">Ver</button>
             </div>

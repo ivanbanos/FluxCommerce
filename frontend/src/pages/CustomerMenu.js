@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import './CustomerMenu.css';
 
 const CustomerMenu = () => {
   const navigate = useNavigate();
@@ -17,13 +18,18 @@ const CustomerMenu = () => {
     // Obtener direcciones del backend
     const token = localStorage.getItem('customerToken');
     if (!token) return;
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const email = payload.email;
-    fetch(`/api/customer/by-email/${email}`)
-      .then(res => res.json())
-      .then(data => {
-        setAddresses(data.addresses || []);
-      });
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const email = payload.email;
+      fetch(`/api/customer/by-email/${email}`)
+        .then(res => res.json())
+        .then(data => {
+          setAddresses(data.addresses || []);
+        })
+        .catch(err => console.error(err));
+    } catch (e) {
+      console.error("Invalid token", e);
+    }
   }, [success]);
 
   const handleAddAddress = async (e) => {
@@ -33,9 +39,10 @@ const CustomerMenu = () => {
     setSuccess(false);
     const token = localStorage.getItem('customerToken');
     if (!token) return;
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    const email = payload.email;
+    
     try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const email = payload.email;
       const res = await fetch('/api/customer/add-address', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -52,31 +59,61 @@ const CustomerMenu = () => {
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: '40px auto', padding: 32, background: '#fff', borderRadius: 8, boxShadow: '0 2px 8px #eee' }}>
-      <h2>Menú de Cliente</h2>
-      <button style={{ width: '100%', marginBottom: 16, padding: 12, fontSize: 18 }} onClick={() => navigate('/customer/orders')}>Ver mis pedidos</button>
-      <form onSubmit={handleAddAddress} style={{ marginBottom: 16 }}>
-        <label>Agregar dirección de envío</label>
-        <input
-          type="text"
-          value={address}
-          onChange={e => setAddress(e.target.value)}
-          required
-          style={{ width: '100%', marginBottom: 8, padding: 8 }}
-        />
-        <button type="submit" disabled={loading} style={{ width: '100%', padding: 12, fontSize: 18 }}>Agregar dirección</button>
-        {error && <div style={{ color: 'red', marginTop: 8 }}>{error}</div>}
-        {success && <div style={{ color: 'green', marginTop: 8 }}>¡Dirección agregada!</div>}
-      </form>
-      <div style={{ marginBottom: 16 }}>
-        <label>Direcciones guardadas:</label>
-        <ul>
-          {addresses.map((addr, idx) => (
-            <li key={idx}>{addr}</li>
-          ))}
-        </ul>
+    <div className="customer-menu-container">
+      <div className="customer-menu-card">
+        <h2 className="customer-menu-title">Menú de Cliente</h2>
+        
+        <button 
+          className="customer-menu-btn btn-secondary" 
+          onClick={() => navigate('/customer/orders')}
+        >
+          Ver mis pedidos
+        </button>
+
+        <div className="customer-menu-section">
+          <form onSubmit={handleAddAddress}>
+            <label className="customer-menu-label">Agregar dirección de envío</label>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+              <input
+                type="text"
+                className="customer-menu-input"
+                value={address}
+                onChange={e => setAddress(e.target.value)}
+                required
+                placeholder="Calle, Número, Ciudad..."
+              />
+            </div>
+            <button 
+              type="submit" 
+              className="customer-menu-btn btn-primary" 
+              disabled={loading}
+            >
+              {loading ? 'Guardando...' : 'Agregar dirección'}
+            </button>
+            
+            {error && <div className="status-message status-error">{error}</div>}
+            {success && <div className="status-message status-success">¡Dirección agregada!</div>}
+          </form>
+        </div>
+
+        {addresses.length > 0 && (
+          <div className="customer-menu-section">
+            <label className="customer-menu-label">Direcciones guardadas:</label>
+            <ul className="address-list">
+              {addresses.map((addr, idx) => (
+                <li key={idx} className="address-item">{addr}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <button 
+          className="customer-menu-btn btn-danger" 
+          onClick={handleLogout}
+        >
+          Cerrar sesión
+        </button>
       </div>
-      <button style={{ width: '100%', padding: 12, fontSize: 18, background: '#d32f2f', color: '#fff', border: 'none', borderRadius: 4 }} onClick={handleLogout}>Cerrar sesión</button>
     </div>
   );
 };

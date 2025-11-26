@@ -3,7 +3,8 @@
 .app-header{
   position: sticky;
   top: 0;
-  z-index: 40;
+  /* raise header stacking so dropdowns can appear above the chat panel */
+  z-index: 10000;
   width: 100%;
   height: var(--header-height);
   /* subtle blue gradient matching site accent */
@@ -35,7 +36,7 @@
 
 /* admin button */
 .admin-btn{
-  background: rgba(11,99,184,0.18);
+  background: rgba(11,99,184,0.22);
   color: #fff;
   padding: 6px 10px;
   border-radius: 8px;
@@ -43,33 +44,39 @@
   font-size: 13px;
   font-weight: 600;
 }
-.admin-btn:hover{ background: rgba(11,99,184,0.24); }
+.admin-btn:hover{ background: rgba(11,99,184,0.30); }
 
-/* Role selector styles */
-.role-label{ display:inline-flex; align-items:center; }
-
-/* simplified role selector that blends with the header (no arrow) */
-.role-select{
-  /* blue-toned card that reads well on the header */
-  appearance: none;
-  -webkit-appearance: none;
-  background: linear-gradient(180deg, #eaf4ff 0%, #d9eeff 100%); /* soft light-blue */
-  color: #05304a; /* deep blue text */
-  border: 1px solid rgba(11,99,184,0.18);
-  padding: 8px 12px;
-  border-radius: 10px;
-  font-size: 13px;
-  cursor: pointer;
-  min-width: 88px;
-  box-shadow: none;
-  transition: background 120ms ease, transform 120ms ease;
+/* Role toggle styles */
+.role-toggle {
+  display: flex;
+  background: rgba(11,99,184,0.22);
+  border-radius: 20px;
+  padding: 3px;
+  gap: 2px;
 }
-.role-select:focus{ outline: none; box-shadow: 0 0 0 4px rgba(255,255,255,0.06); }
-.role-select option{ color: #000; }
-.role-select:hover{ transform: translateY(-1px); }
 
-/* ensure the select arrow is visually unobtrusive */
-.role-select::-ms-expand{ display:none; }
+.role-option {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.8);
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.role-option:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.1);
+}
+
+.role-option.active {
+  background: #fff;
+  color: #0b63b8;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
 
 /* user menu (icon + dropdown) */
 .user-menu{ position: relative; }
@@ -77,14 +84,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255,255,255,0.04);
+  background: rgba(11,99,184,0.18);
   color: #fff;
   border: none;
   padding: 8px;
   border-radius: 8px;
   cursor: pointer;
 }
-.user-menu-button:hover{ background: rgba(255,255,255,0.10); }
+.user-menu-button:hover{ background: rgba(11,99,184,0.26); }
 .user-menu-button svg{ display: block; }
 
 .user-dropdown{
@@ -98,7 +105,8 @@
   min-width: 180px;
   overflow: hidden;
   border: 1px solid rgba(11,99,184,0.12);
-  z-index: 60;
+  /* place dropdown above chat panel */
+  z-index: 10001;
   transition: transform 160ms ease, opacity 140ms ease;
 }
 .user-dropdown-item{
@@ -137,7 +145,7 @@
   border-radius: 8px;
 }
 .header-left a:hover, .header-right a:hover{
-  background: rgba(255,255,255,0.08);
+  background: rgba(11,99,184,0.18);
 }
 
 /* Smaller screens: reduce header height and icon padding */
